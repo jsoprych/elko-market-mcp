@@ -54,7 +54,10 @@ Start the server and open a browser — a dynamic UI is served at the root:
 The dashboard is entirely generated from the JSON Schema of each tool:
 - **Sidebar** — collapsible tree: source → category → tool
 - **Form** — generated per-tool from `schema.properties`: text inputs, `<select>` for enum fields, checkboxes for booleans, number inputs with min/max, datalist autocomplete where `examples` are defined
-- **Result panel** — displays raw output below the form
+- **Result panel** — rendered as HTML tables (`csv`, `table`, `kv`, `sections` formats) or `<pre>` fallback
+- **Toolbar** — back/forward history (up to 50 results), copy-to-clipboard button
+- **URL state** — `?tool=name&arg=val` is bookmarkable and auto-runs on load when all required args are present
+- **Row overflow** — tables > 100 rows collapse with a "Show all N rows" toggle
 
 No static HTML beyond the 5-line index shell. All structure is derived from the catalogue at `/v1/catalogue`.
 
