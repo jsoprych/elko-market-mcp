@@ -1,5 +1,6 @@
 /**
  * runner.js — calls POST /v1/call/{tool} and renders the result.
+ * Returns { text } on success, null on error (caller handles history/toolbar).
  */
 
 import { renderResult } from './renderer.js';
@@ -7,8 +8,9 @@ import { renderResult } from './renderer.js';
 /**
  * @param {string} toolName
  * @param {object} args
- * @param {string} resultFormat   value of tool.result_format ("table"|"csv"|"kv"|"sections"|"")
+ * @param {string} resultFormat
  * @param {HTMLElement} container
+ * @returns {Promise<{text: string}|null>}
  */
 export async function runTool(toolName, args, resultFormat, container) {
   container.innerHTML = '';
@@ -30,7 +32,7 @@ export async function runTool(toolName, args, resultFormat, container) {
       const errEl = mk('div', 'elko-result-status elko-result-status--error');
       errEl.textContent = data.error || `HTTP ${res.status}`;
       container.appendChild(errEl);
-      return;
+      return null;
     }
 
     const text = typeof data.result === 'string'
@@ -38,12 +40,14 @@ export async function runTool(toolName, args, resultFormat, container) {
       : JSON.stringify(data.result, null, 2);
 
     renderResult(text, resultFormat, container);
+    return { text };
 
   } catch (err) {
     container.innerHTML = '';
     const errEl = mk('div', 'elko-result-status elko-result-status--error');
     errEl.textContent = String(err);
     container.appendChild(errEl);
+    return null;
   }
 }
 

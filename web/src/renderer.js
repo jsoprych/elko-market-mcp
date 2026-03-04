@@ -192,8 +192,12 @@ function parseBlock(text) {
   return { title, bodyLines: lines.slice(start, end) };
 }
 
+/** Rows beyond this limit are hidden behind a toggle. */
+const ROW_LIMIT = 100;
+
 /**
  * Build an HTML table from headers + rows arrays.
+ * Rows beyond ROW_LIMIT are hidden; a toggle button reveals them.
  * @param {string[]} headers
  * @param {string[][]} rows
  * @param {string} cls
@@ -208,8 +212,11 @@ function buildTable(headers, rows, cls) {
   thead.appendChild(htr);
   table.appendChild(thead);
 
+  const visibleRows  = rows.slice(0, ROW_LIMIT);
+  const overflowRows = rows.slice(ROW_LIMIT);
+
   const tbody = document.createElement('tbody');
-  for (const row of rows) {
+  for (const row of visibleRows) {
     const tr = document.createElement('tr');
     for (let i = 0; i < Math.max(headers.length, row.length); i++) {
       appendCell(tr, 'td', row[i] ?? '');
@@ -217,6 +224,42 @@ function buildTable(headers, rows, cls) {
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
+
+  if (overflowRows.length > 0) {
+    const overflowBody = document.createElement('tbody');
+    overflowBody.className = 'elko-overflow-body';
+    for (const row of overflowRows) {
+      const tr = document.createElement('tr');
+      for (let i = 0; i < Math.max(headers.length, row.length); i++) {
+        appendCell(tr, 'td', row[i] ?? '');
+      }
+      overflowBody.appendChild(tr);
+    }
+    table.appendChild(overflowBody);
+
+    const tfoot = document.createElement('tfoot');
+    const ftr   = document.createElement('tr');
+    const ftd   = document.createElement('td');
+    ftd.colSpan = Math.max(headers.length, 1);
+    ftd.className = 'elko-overflow-cell';
+
+    const btn = mk('button', 'elko-overflow-toggle');
+    btn.textContent = `Show all ${rows.length} rows`;
+    btn.addEventListener('click', () => {
+      const hidden = overflowBody.classList.toggle('elko-overflow-hidden');
+      btn.textContent = hidden
+        ? `Show all ${rows.length} rows`
+        : `Show fewer rows`;
+    });
+    // Start collapsed
+    overflowBody.classList.add('elko-overflow-hidden');
+
+    ftd.appendChild(btn);
+    ftr.appendChild(ftd);
+    tfoot.appendChild(ftr);
+    table.appendChild(tfoot);
+  }
+
   return table;
 }
 
