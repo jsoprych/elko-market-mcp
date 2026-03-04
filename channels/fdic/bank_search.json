@@ -1,0 +1,24 @@
+{
+  "name": "fdic_bank_search",
+  "description": "Search FDIC-insured banks by name. Returns institution summary: cert number, name, city, state, status, asset size.",
+  "source": "fdic",
+  "category": "banking",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name":  {"type": "string",  "description": "Bank name (partial match)"},
+      "state": {"type": "string",  "description": "Two-letter state abbreviation (e.g. NY)"},
+      "limit": {"type": "integer", "description": "Max results (default 10, max 50)"}
+    }
+  },
+  "request": {
+    "base_url": "https://banks.data.fdic.gov",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "ttl": "24h"
+  },
+  "response": {
+    "extractor": "fdic_bank_search"
+  }
+}

@@ -1,0 +1,19 @@
+# Binaries
+elko
+/dist/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Go
+vendor/

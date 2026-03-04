@@ -1,0 +1,23 @@
+{
+  "name": "yahoo_quote",
+  "description": "Current quote + metadata from Yahoo Finance (price, 52W range, volume, name, exchange). Augments with SEC EDGAR metrics when available.",
+  "source": "yahoo",
+  "category": "equity",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "symbol": {"type": "string", "description": "Ticker symbol"}
+    },
+    "required": ["symbol"]
+  },
+  "request": {
+    "base_url": "https://query1.finance.yahoo.com/v8/finance/chart",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (compatible; elko-market-mcp/1.0)"
+    },
+    "ttl": "5m"
+  },
+  "response": {
+    "extractor": "yahoo_chart_quote"
+  }
+}

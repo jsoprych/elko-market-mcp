@@ -1,0 +1,29 @@
+{
+  "name": "edgar_financials",
+  "description": "Income statement, balance sheet, or cash flow statement from SEC EDGAR XBRL. US-listed companies only.",
+  "source": "edgar",
+  "category": "equity",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "symbol":    {"type": "string", "description": "Ticker symbol (US-listed)"},
+      "statement": {"type": "string", "enum": ["income", "balance", "cashflow"], "description": "Statement type (default: income)"},
+      "frequency": {"type": "string", "enum": ["annual", "quarterly"], "description": "Annual (10-K) or quarterly (10-Q) (default: annual)"}
+    },
+    "required": ["symbol"]
+  },
+  "request": {
+    "base_url": "https://data.sec.gov",
+    "headers": {
+      "User-Agent": "elko-market-mcp/1.0 contact@localhost",
+      "Accept": "application/json, application/atom+xml, text/html"
+    },
+    "env_headers": {
+      "User-Agent": "SEC_USER_AGENT"
+    },
+    "ttl": "24h"
+  },
+  "response": {
+    "extractor": "edgar_xbrl_financials"
+  }
+}

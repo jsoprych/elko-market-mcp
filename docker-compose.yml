@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  elko:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - elko-data:/data
+    environment:
+      # Required by SEC policy: https://www.sec.gov/developer
+      # Format: "Your Name your@email.com"
+      - SEC_USER_AGENT=${SEC_USER_AGENT:-elko-market-mcp contact@localhost}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/elko", "catalogue", "--sources", "yahoo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  elko-data:

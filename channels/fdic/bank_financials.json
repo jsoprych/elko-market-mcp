@@ -1,0 +1,24 @@
+{
+  "name": "fdic_bank_financials",
+  "description": "Financial summary for an FDIC-insured bank by certificate number. Returns assets, deposits, equity, net income, capital ratios.",
+  "source": "fdic",
+  "category": "banking",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "cert": {"type": "string",  "description": "FDIC certificate number (from fdic_bank_search)"},
+      "year": {"type": "integer", "description": "Report year (default: most recent)"}
+    },
+    "required": ["cert"]
+  },
+  "request": {
+    "base_url": "https://banks.data.fdic.gov",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "ttl": "24h"
+  },
+  "response": {
+    "extractor": "fdic_bank_financials"
+  }
+}

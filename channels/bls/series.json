@@ -1,0 +1,25 @@
+{
+  "name": "bls_series",
+  "description": "Bureau of Labor Statistics time series data. Well-known series: CUUR0000SA0 (CPI-U All Items NSA), CUSR0000SA0 (CPI-U SA), LNS14000000 (Unemployment Rate SA), CES0000000001 (Total Nonfarm Payrolls), WPUFD49104 (PPI Final Demand). Use BLS series IDs directly for other series.",
+  "source": "bls",
+  "category": "macro",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "series_id":  {"type": "string", "description": "BLS series ID (e.g. CUUR0000SA0 for CPI-U)"},
+      "start_year": {"type": "string", "description": "Start year YYYY (default: 5 years ago)"},
+      "end_year":   {"type": "string", "description": "End year YYYY (default: current year)"}
+    },
+    "required": ["series_id"]
+  },
+  "request": {
+    "base_url": "https://api.bls.gov",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "ttl": "12h"
+  },
+  "response": {
+    "extractor": "bls_series"
+  }
+}

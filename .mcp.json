@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "elko-market": {
+      "type": "stdio",
+      "command": "/home/john/CODE/PROJECTS/LATEST/2026/MARKETMCP/elko-market-mcp/elko",
+      "args": ["mcp"],
+      "env": {
+        "SEC_USER_AGENT": "elko-market-mcp contact@localhost"
+      }
+    }
+  }
+}
