@@ -63,6 +63,50 @@ No static HTML beyond the 5-line index shell. All structure is derived from the 
 
 ---
 
+## 5. HTTP Server
+
+The `serve` command starts a combined REST API + web dashboard:
+
+```bash
+./elko serve --port 8080
+# open http://localhost:8080
+```
+
+Optional flags:
+```bash
+./elko serve --port 8080 --db ~/.elko-cache.db   # with SQLite response cache
+./elko serve --port 8080 --sources yahoo,edgar   # restrict to specific sources
+```
+
+**Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | Web dashboard (SPA) |
+| `GET` | `/health` | `{"status":"ok"}` |
+| `GET` | `/v1/catalogue` | All tools with schema + result format |
+| `POST` | `/v1/call/{tool}` | Run a tool; body is JSON args |
+
+**Example REST calls:**
+```bash
+# Catalogue
+curl localhost:8080/v1/catalogue | jq '.tools[].name'
+
+# Run a tool
+curl -s -XPOST localhost:8080/v1/call/yahoo_quote \
+  -H 'Content-Type: application/json' \
+  -d '{"symbol":"AAPL"}'
+
+# Bool args
+curl -s -XPOST localhost:8080/v1/call/treasury_yields \
+  -H 'Content-Type: application/json' \
+  -d '{"latest":true}'
+```
+
+**URL state** — the dashboard updates `?tool=name&arg=val` as you run tools. Bookmarked URLs auto-run on load when all required args are present.
+
+---
+
 ## Tool Reference & Example Calls
 
 ---
