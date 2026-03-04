@@ -6,9 +6,10 @@
   "schema": {
     "type": "object",
     "properties": {
-      "series_id":  {"type": "string", "description": "BLS series ID (e.g. CUUR0000SA0 for CPI-U)"},
-      "start_year": {"type": "string", "description": "Start year YYYY (default: 5 years ago)"},
-      "end_year":   {"type": "string", "description": "End year YYYY (default: current year)"}
+      "series_id":  {"type": "string", "description": "BLS series ID", "placeholder": "CUUR0000SA0",
+                     "examples": ["CUUR0000SA0","CUSR0000SA0","LNS14000000","CES0000000001","WPUFD49104"]},
+      "start_year": {"type": "string", "description": "Start year YYYY (default: 5 years ago)", "placeholder": "2020"},
+      "end_year":   {"type": "string", "description": "End year YYYY (default: current year)",   "placeholder": "2026"}
     },
     "required": ["series_id"]
   },

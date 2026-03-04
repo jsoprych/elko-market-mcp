@@ -136,7 +136,7 @@ func serveCmd() *cobra.Command {
 			}
 			srv := &http.Server{
 				Addr:    fmt.Sprintf(":%d", flagPort),
-				Handler: api.New(reg, version).Handler(),
+				Handler: api.New(reg, version).WithWebRoot("./web").Handler(),
 			}
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
@@ -192,11 +192,22 @@ func callCmd() *cobra.Command {
 			toolName := args[0]
 
 			// Build JSON args from key=value pairs.
-			m := make(map[string]string)
+			// Coerce "true"/"false" to booleans and numeric strings to numbers
+			// so that downstream JSON unmarshal into typed structs works correctly.
+			m := make(map[string]any)
 			for _, kv := range args[1:] {
 				parts := strings.SplitN(kv, "=", 2)
-				if len(parts) == 2 {
-					m[parts[0]] = parts[1]
+				if len(parts) != 2 {
+					continue
+				}
+				k, v := parts[0], parts[1]
+				switch v {
+				case "true":
+					m[k] = true
+				case "false":
+					m[k] = false
+				default:
+					m[k] = v
 				}
 			}
 

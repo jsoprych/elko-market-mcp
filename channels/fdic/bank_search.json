@@ -6,9 +6,9 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name":  {"type": "string",  "description": "Bank name (partial match)"},
-      "state": {"type": "string",  "description": "Two-letter state abbreviation (e.g. NY)"},
-      "limit": {"type": "integer", "description": "Max results (default 10, max 50)"}
+      "name":  {"type": "string",  "description": "Bank name (partial match)",               "placeholder": "First National"},
+      "state": {"type": "string",  "description": "Two-letter state abbreviation",           "placeholder": "NY"},
+      "limit": {"type": "integer", "description": "Max results (default 10, max 50)",        "default": 10, "minimum": 1, "maximum": 50}
     }
   },
   "request": {

@@ -6,7 +6,7 @@
   "schema": {
     "type": "object",
     "properties": {
-      "symbol": {"type": "string", "description": "Ticker symbol (US-listed)"}
+      "symbol": {"type": "string", "description": "Ticker symbol (US-listed)", "placeholder": "MSFT"}
     },
     "required": ["symbol"]
   },

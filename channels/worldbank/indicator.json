@@ -6,10 +6,12 @@
   "schema": {
     "type": "object",
     "properties": {
-      "country":   {"type": "string",  "description": "ISO 3166-1 alpha-2 or alpha-3 country code, or 'all' (e.g. US, CHN, GB, all)"},
-      "indicator": {"type": "string",  "description": "World Bank indicator code (e.g. NY.GDP.MKTP.CD)"},
-      "from_year": {"type": "integer", "description": "Start year (default: 10 years ago)"},
-      "to_year":   {"type": "integer", "description": "End year (default: current year)"}
+      "country":   {"type": "string",  "description": "ISO 3166-1 alpha-2 or alpha-3, or 'all'", "placeholder": "US",
+                    "examples": ["US","GB","CHN","DEU","JPN","all"]},
+      "indicator": {"type": "string",  "description": "World Bank indicator code", "placeholder": "NY.GDP.MKTP.CD",
+                    "examples": ["NY.GDP.MKTP.CD","NY.GDP.PCAP.CD","NY.GDP.MKTP.KD.ZG","FP.CPI.TOTL.ZG","SL.UEM.TOTL.ZS","SP.POP.TOTL"]},
+      "from_year": {"type": "integer", "description": "Start year (default: 10 years ago)", "placeholder": "2015", "minimum": 1960},
+      "to_year":   {"type": "integer", "description": "End year (default: current year)",   "placeholder": "2024", "minimum": 1960}
     },
     "required": ["country", "indicator"]
   },

@@ -6,9 +6,9 @@
   "schema": {
     "type": "object",
     "properties": {
-      "symbol":    {"type": "string", "description": "Ticker symbol (US-listed)"},
-      "statement": {"type": "string", "enum": ["income", "balance", "cashflow"], "description": "Statement type (default: income)"},
-      "frequency": {"type": "string", "enum": ["annual", "quarterly"], "description": "Annual (10-K) or quarterly (10-Q) (default: annual)"}
+      "symbol":    {"type": "string", "description": "Ticker symbol (US-listed)", "placeholder": "AAPL"},
+      "statement": {"type": "string", "description": "Statement type (default: income)",         "enum": ["income","balance","cashflow"], "default": "income"},
+      "frequency": {"type": "string", "description": "Annual (10-K) or quarterly (10-Q)",         "enum": ["annual","quarterly"],          "default": "annual"}
     },
     "required": ["symbol"]
   },

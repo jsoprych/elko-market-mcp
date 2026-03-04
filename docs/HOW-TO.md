@@ -42,6 +42,24 @@ curl -s -XPOST localhost:8080/v1/call/<tool_name> \
 
 ---
 
+## 4. Web Dashboard
+
+Start the server and open a browser — a dynamic UI is served at the root:
+
+```bash
+./elko serve --port 8080
+# open http://localhost:8080
+```
+
+The dashboard is entirely generated from the JSON Schema of each tool:
+- **Sidebar** — collapsible tree: source → category → tool
+- **Form** — generated per-tool from `schema.properties`: text inputs, `<select>` for enum fields, checkboxes for booleans, number inputs with min/max, datalist autocomplete where `examples` are defined
+- **Result panel** — displays raw output below the form
+
+No static HTML beyond the 5-line index shell. All structure is derived from the catalogue at `/v1/catalogue`.
+
+---
+
 ## Tool Reference & Example Calls
 
 ---
@@ -395,8 +413,9 @@ Since the MCP server is live in this session, just paste any of these:
 # Enable specific sources only
 ./elko --sources yahoo,edgar call yahoo_quote symbol=TSLA
 
-# Start REST server
+# Start REST server + web dashboard
 ./elko serve --port 8080
+# open http://localhost:8080
 
 # Health check
 curl localhost:8080/health

@@ -17,10 +17,17 @@ import (
 type Server struct {
 	reg     *registry.Registry
 	version string
+	webRoot string // optional; serves static UI if non-empty
 }
 
 func New(reg *registry.Registry, version string) *Server {
 	return &Server{reg: reg, version: version}
+}
+
+// WithWebRoot configures the server to serve a static UI from the given directory.
+func (s *Server) WithWebRoot(root string) *Server {
+	s.webRoot = root
+	return s
 }
 
 // Handler returns the configured Chi router.
@@ -35,6 +42,11 @@ func (s *Server) Handler() http.Handler {
 	r.Get("/v1/catalogue", s.handleCatalogue)
 	r.Post("/v1/call/{tool}", s.handleCall)
 	r.Get("/v1/sources", s.handleSources)
+
+	if s.webRoot != "" {
+		fs := http.FileServer(http.Dir(s.webRoot))
+		r.NotFound(fs.ServeHTTP)
+	}
 
 	return r
 }
@@ -113,10 +125,19 @@ func (s *Server) handleCall(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Also accept query params as JSON args for simple GET-style calls.
+	// Coerce "true"/"false" to booleans so typed struct fields unmarshal correctly.
 	if len(r.URL.Query()) > 0 && string(args) == `{}` {
-		m := make(map[string]string)
+		m := make(map[string]any)
 		for k, v := range r.URL.Query() {
-			if len(v) > 0 {
+			if len(v) == 0 {
+				continue
+			}
+			switch v[0] {
+			case "true":
+				m[k] = true
+			case "false":
+				m[k] = false
+			default:
 				m[k] = v[0]
 			}
 		}

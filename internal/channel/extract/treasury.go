@@ -28,15 +28,19 @@ func extractTreasuryYields(ctx context.Context, args json.RawMessage, ch *channe
 		return "", err
 	}
 
+	lookback := -30
+	if a.Latest {
+		lookback = -90 // monthly dataset; widen to ensure we catch the latest record
+	}
 	if a.From == "" {
-		a.From = time.Now().AddDate(0, 0, -30).Format("2006-01-02")
+		a.From = time.Now().AddDate(0, 0, lookback).Format("2006-01-02")
 	}
 	if a.To == "" {
 		a.To = time.Now().Format("2006-01-02")
 	}
 
 	curveURL := fmt.Sprintf(
-		"https://api.fiscaldata.treasury.gov/services/api/v1/accounting/od/avg_interest_rates?filter=record_date:gte:%s,record_date:lte:%s&sort=-record_date&page[size]=30&fields=record_date,security_desc,avg_interest_rate_amt",
+		"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?filter=record_date:gte:%s,record_date:lte:%s&sort=-record_date&page[size]=250&fields=record_date,security_desc,avg_interest_rate_amt",
 		a.From, a.To,
 	)
 
