@@ -12,6 +12,7 @@
     },
     "required": ["symbol"]
   },
+  "result_format": "table",
   "request": {
     "base_url": "https://data.sec.gov",
     "headers": {

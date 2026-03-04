@@ -15,6 +15,7 @@
     },
     "required": ["country", "indicator"]
   },
+  "result_format": "table",
   "request": {
     "base_url": "https://api.worldbank.org",
     "headers": {

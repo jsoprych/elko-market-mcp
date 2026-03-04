@@ -13,12 +13,13 @@ import (
 
 // Tool is a single callable data-fetching operation.
 type Tool struct {
-	Name        string          // snake_case, e.g. "market_quote"
-	Description string          // human-readable, shown in MCP tools/list and REST /v1/catalogue
-	Schema      json.RawMessage // JSON Schema for arguments (OpenAI-compatible)
-	Source      string          // source tag: "yahoo", "edgar", "treasury", "bls", "fdic", "worldbank"
-	Category    string          // data category: "equity", "macro", "rates", "banking"
-	Handler     Handler
+	Name         string          // snake_case, e.g. "market_quote"
+	Description  string          // human-readable, shown in MCP tools/list and REST /v1/catalogue
+	Schema       json.RawMessage // JSON Schema for arguments (OpenAI-compatible)
+	Source       string          // source tag: "yahoo", "edgar", "treasury", "bls", "fdic", "worldbank"
+	Category     string          // data category: "equity", "macro", "rates", "banking"
+	ResultFormat string          // ui hint: "table" | "csv" | "kv" | "sections"
+	Handler      Handler
 }
 
 // Handler executes a tool call. Args is the raw JSON arguments object.

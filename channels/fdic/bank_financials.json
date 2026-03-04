@@ -11,6 +11,7 @@
     },
     "required": ["cert"]
   },
+  "result_format": "sections",
   "request": {
     "base_url": "https://banks.data.fdic.gov",
     "headers": {

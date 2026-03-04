@@ -11,6 +11,7 @@
       "limit": {"type": "integer", "description": "Max results (default 10, max 50)",        "default": 10, "minimum": 1, "maximum": 50}
     }
   },
+  "result_format": "table",
   "request": {
     "base_url": "https://banks.data.fdic.gov",
     "headers": {

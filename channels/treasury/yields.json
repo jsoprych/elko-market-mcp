@@ -11,6 +11,7 @@
       "latest": {"type": "boolean", "description": "Return only the most recent available date"}
     }
   },
+  "result_format": "table",
   "request": {
     "base_url": "https://api.fiscaldata.treasury.gov",
     "headers": {

@@ -13,6 +13,7 @@
     },
     "required": ["series_id"]
   },
+  "result_format": "table",
   "request": {
     "base_url": "https://api.bls.gov",
     "headers": {

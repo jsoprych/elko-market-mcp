@@ -47,7 +47,7 @@ async function init() {
     toolPanel.innerHTML  = '';
     resultPanel.innerHTML = '';
     toolPanel.appendChild(
-      buildForm(tool, args => runTool(tool.name, args, resultPanel))
+      buildForm(tool, args => runTool(tool.name, args, tool.result_format || '', resultPanel))
     );
   });
 }

@@ -217,3 +217,63 @@
   overflow-x: auto;
   color: #1a1a2e;
 }
+
+.elko-result-empty { color: #999; font-size: 13px; }
+
+/* ── Result titles ────────────────────────────────────────────────────────── */
+
+.elko-result-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #1a1a2e;
+}
+
+/* ── Tabular results ──────────────────────────────────────────────────────── */
+
+.elko-result-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: 'Menlo', 'Consolas', 'SF Mono', monospace;
+  width: 100%;
+}
+.elko-result-table th {
+  text-align: left;
+  padding: 5px 16px 5px 0;
+  border-bottom: 2px solid #e1e4e8;
+  color: #555;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.elko-result-table td {
+  padding: 4px 16px 4px 0;
+  border-bottom: 1px solid #f0f1f4;
+  white-space: nowrap;
+  color: #1a1a2e;
+}
+.elko-result-table tbody tr:hover td { background: #f6f8fa; }
+
+/* ── Key-value table ──────────────────────────────────────────────────────── */
+
+.elko-result-table--kv th.elko-kv-key {
+  color: #666;
+  font-weight: 600;
+  width: 220px;
+  padding-right: 24px;
+}
+.elko-result-table--kv td.elko-kv-val { color: #1a1a2e; }
+
+/* ── Sections (fdic_bank_financials) ──────────────────────────────────────── */
+
+.elko-result-section { margin-bottom: 20px; }
+.elko-result-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7c6af7;
+  margin-bottom: 6px;
+  padding-top: 10px;
+  border-top: 1px solid #e8eaf0;
+}
+.elko-result-section:first-child .elko-result-section-title { border-top: none; }

@@ -89,20 +89,22 @@ func (s *Server) handleCatalogue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type toolEntry struct {
-		Name        string          `json:"name"`
-		Description string          `json:"description"`
-		Schema      json.RawMessage `json:"schema"`
-		Source      string          `json:"source"`
-		Category    string          `json:"category"`
+		Name         string          `json:"name"`
+		Description  string          `json:"description"`
+		Schema       json.RawMessage `json:"schema"`
+		Source       string          `json:"source"`
+		Category     string          `json:"category"`
+		ResultFormat string          `json:"result_format,omitempty"`
 	}
 	entries := make([]toolEntry, 0, len(tools))
 	for _, t := range tools {
 		entries = append(entries, toolEntry{
-			Name:        t.Name,
-			Description: t.Description,
-			Schema:      t.Schema,
-			Source:      t.Source,
-			Category:    t.Category,
+			Name:         t.Name,
+			Description:  t.Description,
+			Schema:       t.Schema,
+			Source:       t.Source,
+			Category:     t.Category,
+			ResultFormat: t.ResultFormat,
 		})
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{

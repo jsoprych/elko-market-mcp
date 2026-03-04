@@ -63,11 +63,12 @@ func (r *Runner) Register(reg *registry.Registry, specs []Spec) error {
 		extractor := fn
 		_ = spec
 		reg.Register(registry.Tool{
-			Name:        s.Name,
-			Description: s.Description,
-			Schema:      s.Schema,
-			Source:      s.Source,
-			Category:    s.Category,
+			Name:         s.Name,
+			Description:  s.Description,
+			Schema:       s.Schema,
+			Source:       s.Source,
+			Category:     s.Category,
+			ResultFormat: s.ResultFormat,
 			Handler: func(ctx context.Context, args json.RawMessage) (string, error) {
 				return extractor(ctx, args, ch)
 			},
