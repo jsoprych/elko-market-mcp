@@ -95,6 +95,7 @@ func (s *Server) handleCatalogue(w http.ResponseWriter, r *http.Request) {
 		Source       string          `json:"source"`
 		Category     string          `json:"category"`
 		ResultFormat string          `json:"result_format,omitempty"`
+		Chart        json.RawMessage `json:"chart,omitempty"`
 	}
 	entries := make([]toolEntry, 0, len(tools))
 	for _, t := range tools {
@@ -105,6 +106,7 @@ func (s *Server) handleCatalogue(w http.ResponseWriter, r *http.Request) {
 			Source:       t.Source,
 			Category:     t.Category,
 			ResultFormat: t.ResultFormat,
+			Chart:        t.Chart,
 		})
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{

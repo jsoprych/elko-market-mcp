@@ -18,6 +18,7 @@ type Spec struct {
 	Category     string          `json:"category"`
 	Schema       json.RawMessage `json:"schema"`
 	ResultFormat string          `json:"result_format"` // ui hint: "table" | "csv" | "kv" | "sections"
+	Chart        json.RawMessage `json:"chart,omitempty"` // optional chart spec: {type,x,y}
 	Request      RequestSpec     `json:"request"`
 	Response     ResponseSpec    `json:"response"`
 }

@@ -13,6 +13,7 @@
     "required": ["symbol"]
   },
   "result_format": "csv",
+  "chart": {"type": "bar", "x": "Date", "y": "Amount"},
   "request": {
     "base_url": "https://query1.finance.yahoo.com/v8/finance/chart",
     "headers": {

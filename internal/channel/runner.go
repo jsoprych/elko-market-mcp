@@ -69,6 +69,7 @@ func (r *Runner) Register(reg *registry.Registry, specs []Spec) error {
 			Source:       s.Source,
 			Category:     s.Category,
 			ResultFormat: s.ResultFormat,
+			Chart:        s.Chart,
 			Handler: func(ctx context.Context, args json.RawMessage) (string, error) {
 				return extractor(ctx, args, ch)
 			},

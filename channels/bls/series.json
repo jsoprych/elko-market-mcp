@@ -14,6 +14,7 @@
     "required": ["series_id"]
   },
   "result_format": "table",
+  "chart": {"type": "line", "x": "Year", "y": "Value"},
   "request": {
     "base_url": "https://api.bls.gov",
     "headers": {

@@ -19,6 +19,7 @@ type Tool struct {
 	Source       string          // source tag: "yahoo", "edgar", "treasury", "bls", "fdic", "worldbank"
 	Category     string          // data category: "equity", "macro", "rates", "banking"
 	ResultFormat string          // ui hint: "table" | "csv" | "kv" | "sections"
+	Chart        json.RawMessage // optional chart spec: {type,x,y}
 	Handler      Handler
 }
 

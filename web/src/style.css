@@ -109,13 +109,31 @@
   overflow: hidden;
 }
 
+/* Upper row: form (left) + chart (right) */
+.elko-upper {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #e1e4e8;
+  background: #fff;
+  max-height: 55vh;
+  overflow: hidden;
+}
+
 .elko-tool-panel {
   padding: 24px 28px;
   overflow-y: auto;
-  border-bottom: 1px solid #e1e4e8;
-  background: #fff;
-  /* height is content-driven; result panel takes the rest */
-  max-height: 55vh;
+  flex-shrink: 0;
+  border-right: 1px solid #e8eaf0;
+}
+
+/* Hidden by default; shown when tool.chart is set */
+.elko-chart-panel {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
 .elko-result-wrapper {
@@ -154,7 +172,26 @@
 .elko-toolbar-btn:not(:disabled):hover { background: #f6f8fa; border-color: #a8b1bb; }
 .elko-toolbar-btn:not(:disabled):active { background: #eef0f4; }
 
-.elko-toolbar-btn--copy { margin-left: auto; }
+.elko-toolbar-btn--copy { }
+
+.elko-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.elko-toolbar-fmt {
+  padding: 3px 6px;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #555;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.elko-toolbar-fmt:focus { outline: none; border-color: #7c6af7; }
 
 .elko-toolbar-counter {
   font-size: 11px;

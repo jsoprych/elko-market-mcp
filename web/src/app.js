@@ -1,19 +1,22 @@
 /**
  * app.js — entry point.
  *
- * Features wired here:
- *   - Layout skeleton built entirely from JS
+ * Features:
+ *   - Layout skeleton: sidebar | (form + chart) | result
  *   - Sidebar ↔ form-builder ↔ runner pipeline
- *   - URL state: ?tool=name&arg=val — bookmarkable, shareable, auto-runs on load
+ *   - Pure-SVG chart panel rendered from channel's chart spec
+ *   - Export toolbar: format selector (txt/csv/json) + download + copy
+ *   - URL state: ?tool=name&arg=val — bookmarkable, auto-runs on load
  *   - Result history: in-app back/forward, up to HISTORY_LIMIT entries
- *   - Result toolbar: copy raw text + back/forward navigation
  */
 
-import { fetchCatalogue } from './catalogue.js';
-import { buildSidebar }   from './sidebar.js';
-import { buildForm }      from './form-builder.js';
-import { runTool }        from './runner.js';
-import { renderResult }   from './renderer.js';
+import { fetchCatalogue }             from './catalogue.js';
+import { buildSidebar }               from './sidebar.js';
+import { buildForm }                  from './form-builder.js';
+import { runTool }                    from './runner.js';
+import { renderResult }               from './renderer.js';
+import { renderChart }                from './chart.js';
+import { exportData, exportFilename } from './export.js';
 
 const HISTORY_LIMIT = 50;
 
@@ -23,7 +26,9 @@ async function init() {
   // ── Layout skeleton ─────────────────────────────────────────────────────────
   const sidebar       = mk('aside', 'elko-sidebar');
   const workspace     = mk('main',  'elko-workspace');
+  const upper         = mk('div',   'elko-upper');       // form + chart side-by-side
   const toolPanel     = mk('div',   'elko-tool-panel');
+  const chartPanel    = mk('div',   'elko-chart-panel');
   const resultWrapper = mk('div',   'elko-result-wrapper');
   const toolbar       = mk('div',   'elko-result-toolbar');
   const resultPanel   = mk('div',   'elko-result-panel');
@@ -32,9 +37,11 @@ async function init() {
   sidebarHeader.textContent = 'elko market';
   sidebar.appendChild(sidebarHeader);
 
+  upper.appendChild(toolPanel);
+  upper.appendChild(chartPanel);
   resultWrapper.appendChild(toolbar);
   resultWrapper.appendChild(resultPanel);
-  workspace.appendChild(toolPanel);
+  workspace.appendChild(upper);
   workspace.appendChild(resultWrapper);
   app.appendChild(sidebar);
   app.appendChild(workspace);
@@ -43,8 +50,12 @@ async function init() {
   welcome.textContent = 'Select a tool from the sidebar.';
   toolPanel.appendChild(welcome);
 
+  // ── Export format state ──────────────────────────────────────────────────────
+  // Persists across navigations; controls both Download and Copy.
+  let exportFmt = 'txt';
+
   // ── History state ────────────────────────────────────────────────────────────
-  // Each entry: { tool, args, format, text }
+  // Each entry: { tool, args, format, text, chart }
   const hist = { entries: [], cursor: -1 };
 
   // ── Load catalogue ───────────────────────────────────────────────────────────
@@ -67,7 +78,7 @@ async function init() {
 
   // ── Toolbar ──────────────────────────────────────────────────────────────────
 
-  function renderToolbar(rawText) {
+  function renderToolbar(rawText, resultFormat, toolName) {
     toolbar.innerHTML = '';
 
     // Back / forward
@@ -81,12 +92,13 @@ async function init() {
         hist.cursor--;
         const e = hist.entries[hist.cursor];
         renderResult(e.text, e.format, resultPanel);
+        renderChart(e.text, e.format, e.chart, chartPanel);
         replaceURL(e.tool, e.args);
-        renderToolbar(e.text);
+        renderToolbar(e.text, e.format, e.tool.name);
       }
     });
 
-    const fwd  = mk('button', 'elko-toolbar-btn');
+    const fwd = mk('button', 'elko-toolbar-btn');
     fwd.textContent = '→';
     fwd.title       = 'Forward';
     fwd.disabled    = hist.cursor >= hist.entries.length - 1;
@@ -95,8 +107,9 @@ async function init() {
         hist.cursor++;
         const e = hist.entries[hist.cursor];
         renderResult(e.text, e.format, resultPanel);
+        renderChart(e.text, e.format, e.chart, chartPanel);
         replaceURL(e.tool, e.args);
-        renderToolbar(e.text);
+        renderToolbar(e.text, e.format, e.tool.name);
       }
     });
 
@@ -110,14 +123,39 @@ async function init() {
     nav.appendChild(counter);
     toolbar.appendChild(nav);
 
-    // Copy button (only when there's a result)
+    // Export controls (only when there's a result)
     if (rawText) {
+      const actions = mk('div', 'elko-toolbar-actions');
+
+      // Format selector
+      const fmt = mk('select', 'elko-toolbar-fmt');
+      fmt.title = 'Export format';
+      for (const f of ['txt', 'csv', 'json']) {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f;
+        opt.selected = f === exportFmt;
+        fmt.appendChild(opt);
+      }
+      fmt.addEventListener('change', () => { exportFmt = fmt.value; });
+
+      // Download button
+      const dl = mk('button', 'elko-toolbar-btn');
+      dl.textContent = '↓';
+      dl.title       = 'Download';
+      dl.addEventListener('click', () => {
+        const content  = exportData(rawText, resultFormat, exportFmt);
+        const filename = exportFilename(toolName || 'result', exportFmt);
+        triggerDownload(content, filename);
+      });
+
+      // Copy button
       const copy = mk('button', 'elko-toolbar-btn elko-toolbar-btn--copy');
       copy.textContent = 'Copy';
-      copy.title       = 'Copy raw text to clipboard';
+      copy.title       = 'Copy to clipboard';
       copy.addEventListener('click', async () => {
         try {
-          await navigator.clipboard.writeText(rawText);
+          await navigator.clipboard.writeText(exportData(rawText, resultFormat, exportFmt));
           copy.textContent = 'Copied!';
           setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
         } catch {
@@ -125,7 +163,11 @@ async function init() {
           setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
         }
       });
-      toolbar.appendChild(copy);
+
+      actions.appendChild(fmt);
+      actions.appendChild(dl);
+      actions.appendChild(copy);
+      toolbar.appendChild(actions);
     }
   }
 
@@ -147,14 +189,14 @@ async function init() {
     for (const [k, v] of p) {
       if (k === 'tool') continue;
       const prop = tool.schema?.properties?.[k];
-      if (prop?.type === 'boolean')                         args[k] = v === 'true';
+      if (prop?.type === 'boolean')                              args[k] = v === 'true';
       else if (prop?.type === 'integer' || prop?.type === 'number') args[k] = Number(v);
-      else                                                  args[k] = v;
+      else                                                       args[k] = v;
     }
     return { tool, args };
   }
 
-  // ── Tool selector ────────────────────────────────────────────────────────────
+  // ── Tool selector ─────────────────────────────────────────────────────────────
 
   function selectTool(tool, prefillArgs = {}) {
     // Highlight sidebar item
@@ -163,21 +205,25 @@ async function init() {
     const item = sidebar.querySelector(`[data-tool="${CSS.escape(tool.name)}"]`);
     if (item) item.classList.add('active');
 
-    // Build form
-    toolPanel.innerHTML  = '';
+    // Clear panels
+    toolPanel.innerHTML   = '';
     resultPanel.innerHTML = '';
-    renderToolbar(null);
+    chartPanel.innerHTML  = '';
+    renderToolbar(null, '', tool.name);
+
+    // Show chart panel only when tool has a chart spec
+    chartPanel.style.display = tool.chart ? '' : 'none';
 
     const formContainer = buildForm(tool, async (args) => {
       replaceURL(tool, args);
       const result = await runTool(tool.name, args, tool.result_format || '', resultPanel);
       if (result) {
-        pushHistory({ tool, args, format: tool.result_format || '', text: result.text });
-        renderToolbar(result.text);
+        renderChart(result.text, tool.result_format || '', tool.chart || null, chartPanel);
+        pushHistory({ tool, args, format: tool.result_format || '', text: result.text, chart: tool.chart || null });
+        renderToolbar(result.text, tool.result_format || '', tool.name);
       }
     });
 
-    // Pre-fill from URL args if provided
     if (Object.keys(prefillArgs).length > 0) {
       fillForm(formContainer, prefillArgs, tool);
     }
@@ -185,17 +231,16 @@ async function init() {
     toolPanel.appendChild(formContainer);
   }
 
-  // ── History helpers ──────────────────────────────────────────────────────────
+  // ── History helpers ───────────────────────────────────────────────────────────
 
   function pushHistory(entry) {
-    // Truncate forward branch
     hist.entries = hist.entries.slice(0, hist.cursor + 1);
     hist.entries.push(entry);
     if (hist.entries.length > HISTORY_LIMIT) hist.entries.shift();
     hist.cursor = hist.entries.length - 1;
   }
 
-  // ── Form pre-fill ────────────────────────────────────────────────────────────
+  // ── Form pre-fill ─────────────────────────────────────────────────────────────
 
   function fillForm(container, args, tool) {
     const form = container.querySelector('form');
@@ -209,34 +254,42 @@ async function init() {
     }
   }
 
-  // ── Wire sidebar ─────────────────────────────────────────────────────────────
+  // ── Wire sidebar ──────────────────────────────────────────────────────────────
 
   buildSidebar(sidebar, groups, tool => {
     replaceURL(tool, {});
     selectTool(tool);
   });
 
-  // ── Restore from URL on load ─────────────────────────────────────────────────
+  // ── Restore from URL on load ──────────────────────────────────────────────────
 
   const urlState = readURL();
   if (urlState) {
     const { tool, args } = urlState;
     selectTool(tool, args);
 
-    // Auto-run if all required params are in the URL
     const required = tool.schema?.required ?? [];
     const haveAll  = required.every(k => args[k] !== undefined && args[k] !== '');
     if (haveAll && (required.length > 0 || Object.keys(args).length > 0)) {
       const result = await runTool(tool.name, args, tool.result_format || '', resultPanel);
       if (result) {
-        pushHistory({ tool, args, format: tool.result_format || '', text: result.text });
-        renderToolbar(result.text);
+        renderChart(result.text, tool.result_format || '', tool.chart || null, chartPanel);
+        pushHistory({ tool, args, format: tool.result_format || '', text: result.text, chart: tool.chart || null });
+        renderToolbar(result.text, tool.result_format || '', tool.name);
       }
     }
   }
 }
 
-// ── Utilities ──────────────────────────────────────────────────────────────────
+// ── Utilities ───────────────────────────────────────────────────────────────────
+
+function triggerDownload(content, filename) {
+  const a = document.createElement('a');
+  a.href     = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 /** @param {string} tag @param {string} cls @returns {HTMLElement} */
 function mk(tag, cls) {

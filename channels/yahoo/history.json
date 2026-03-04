@@ -15,6 +15,7 @@
     "required": ["symbol"]
   },
   "result_format": "csv",
+  "chart": {"type": "line", "x": "Date", "y": "Close"},
   "request": {
     "base_url": "https://query1.finance.yahoo.com/v8/finance/chart",
     "headers": {
