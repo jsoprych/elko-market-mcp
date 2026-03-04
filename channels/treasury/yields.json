@@ -6,8 +6,8 @@
   "schema": {
     "type": "object",
     "properties": {
-      "from":   {"type": "string",  "description": "Start date (default: 30 days ago)", "placeholder": "2026-01-01"},
-      "to":     {"type": "string",  "description": "End date (default: today)",         "placeholder": "2026-03-01"},
+      "from":   {"type": "string", "format": "date", "description": "Start date (default: 30 days ago)"},
+      "to":     {"type": "string", "format": "date", "description": "End date (default: today)"},
       "latest": {"type": "boolean", "description": "Return only the most recent available date"}
     }
   },

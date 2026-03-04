@@ -163,9 +163,9 @@ function buildInput(name, prop, isRequired) {
     return input;
   }
 
-  // Default: text
+  // Default: text (or date picker when format=date)
   const input = mk('input', 'elko-input elko-input--text');
-  input.type = 'text';
+  input.type = prop.format === 'date' ? 'date' : 'text';
   input.id   = id;
   input.name = name;
   if (prop.placeholder) input.placeholder = prop.placeholder;
