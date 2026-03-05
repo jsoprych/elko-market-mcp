@@ -1,0 +1,56 @@
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="700" height="260" fill="white"/>
+
+  <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">REST API Endpoints  —  elko serve --port 8080</text>
+
+  <!-- Column headers -->
+  <rect x="10" y="34" width="700" height="22" rx="4" fill="#1e1e2e"/>
+  <text x="70"  y="49" text-anchor="middle" font-size="10" font-weight="700" fill="#cba6f7">Method</text>
+  <text x="240" y="49" text-anchor="middle" font-size="10" font-weight="700" fill="#cba6f7">Path</text>
+  <text x="490" y="49" text-anchor="middle" font-size="10" font-weight="700" fill="#cba6f7">Description</text>
+
+  <!-- Row 1: GET / -->
+  <rect x="10" y="56" width="700" height="36" rx="0" fill="#fafbfc" stroke="#e1e4e8" stroke-width="0.5"/>
+  <rect x="10" y="56" width="120" height="36" fill="#f0eeff"/>
+  <text x="70"  y="78" text-anchor="middle" font-size="11" font-weight="700" fill="#28c940" font-family="'Menlo','Consolas',monospace">GET</text>
+  <text x="240" y="78" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">/</text>
+  <text x="490" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a2e">Web Dashboard</text>
+  <text x="490" y="84" text-anchor="middle" font-size="9"  fill="#888">Zero-dependency browser UI — forms, charts, history, export</text>
+
+  <!-- Row 2: GET /health -->
+  <rect x="10" y="92" width="700" height="36" rx="0" fill="white" stroke="#e1e4e8" stroke-width="0.5"/>
+  <rect x="10" y="92" width="120" height="36" fill="#f0eeff"/>
+  <text x="70"  y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#28c940" font-family="'Menlo','Consolas',monospace">GET</text>
+  <text x="240" y="114" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">/health</text>
+  <text x="490" y="108" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a2e">Health Check</text>
+  <text x="490" y="120" text-anchor="middle" font-size="9"  fill="#888">Returns {"status":"ok"} — use for Docker healthcheck / monitoring</text>
+
+  <!-- Row 3: GET /v1/catalogue -->
+  <rect x="10" y="128" width="700" height="36" rx="0" fill="#fafbfc" stroke="#e1e4e8" stroke-width="0.5"/>
+  <rect x="10" y="128" width="120" height="36" fill="#f0eeff"/>
+  <text x="70"  y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#28c940" font-family="'Menlo','Consolas',monospace">GET</text>
+  <text x="240" y="150" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">/v1/catalogue</text>
+  <text x="490" y="144" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a2e">Tool Catalogue</text>
+  <text x="490" y="156" text-anchor="middle" font-size="9"  fill="#888">All 10 tools with name, description, source, schema, chart spec</text>
+
+  <!-- Row 4: GET /v1/sources -->
+  <rect x="10" y="164" width="700" height="36" rx="0" fill="white" stroke="#e1e4e8" stroke-width="0.5"/>
+  <rect x="10" y="164" width="120" height="36" fill="#f0eeff"/>
+  <text x="70"  y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#28c940" font-family="'Menlo','Consolas',monospace">GET</text>
+  <text x="240" y="186" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">/v1/sources</text>
+  <text x="490" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a2e">Active Sources</text>
+  <text x="490" y="192" text-anchor="middle" font-size="9"  fill="#888">List of enabled source tags (respects --sources filter flag)</text>
+
+  <!-- Row 5: POST /v1/call — highlighted as primary -->
+  <rect x="10" y="200" width="700" height="44" rx="0" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.2"/>
+  <rect x="10" y="200" width="120" height="44" fill="#7c6af7"/>
+  <text x="70"  y="226" text-anchor="middle" font-size="11" font-weight="700" fill="white" font-family="'Menlo','Consolas',monospace">POST</text>
+  <text x="240" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#7c6af7" font-family="'Menlo','Consolas',monospace">/v1/call/{tool}</text>
+  <text x="240" y="234" text-anchor="middle" font-size="9"  fill="#aaa" font-family="'Menlo','Consolas',monospace">body: {"arg": "value"}</text>
+  <text x="490" y="218" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">Execute Tool  ← primary endpoint</text>
+  <text x="490" y="232" text-anchor="middle" font-size="9"  fill="#555">Call any of the 10 tools with JSON args</text>
+  <text x="490" y="244" text-anchor="middle" font-size="9"  fill="#555">Returns: {"result": "…formatted text…"} or {"error": "…"}</text>
+
+</svg>

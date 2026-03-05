@@ -1,5 +1,7 @@
 # elko-market-mcp: How To Use It
 
+![Three interfaces](img/interfaces.svg)
+
 Three ways to call tools: **ask Claude** (MCP), **CLI one-shot**, or **REST API**.
 
 ---

@@ -4,6 +4,8 @@
 **Status:** Design — Pending Implementation
 **Date:** 2026-03-04
 
+![Pipeline v1 vs v2](img/pipeline-v2.svg)
+
 ---
 
 ## Table of Contents

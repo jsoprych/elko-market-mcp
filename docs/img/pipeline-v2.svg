@@ -1,0 +1,81 @@
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="700" height="300" fill="white"/>
+
+  <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Pipeline Design  —  v1 vs v2 (Proposed)</text>
+
+  <defs>
+    <marker id="apv" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#999"/>
+    </marker>
+    <marker id="apv2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#7c6af7"/>
+    </marker>
+  </defs>
+
+  <!-- ── LEFT: v1 current ────────────────────────────────────────── -->
+  <rect x="10" y="36" width="320" height="248" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <rect x="10" y="36" width="320" height="28" rx="6" fill="#313244"/>
+  <rect x="10" y="50" width="320" height="14" fill="#313244"/>
+  <text x="170" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#a6adc8">v1  —  Current Architecture</text>
+
+  <!-- v1 flow boxes -->
+  <rect x="28" y="76" width="284" height="30" rx="4" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="170" y="95" text-anchor="middle" font-size="10" fill="#1a1a2e">HTTP fetch  →  raw JSON bytes</text>
+
+  <line x1="170" y1="106" x2="170" y2="118" stroke="#999" stroke-width="1.2" marker-end="url(#apv)"/>
+
+  <rect x="28" y="118" width="284" height="30" rx="4" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="170" y="137" text-anchor="middle" font-size="10" fill="#1a1a2e">json.Unmarshal  →  Go struct</text>
+
+  <line x1="170" y1="148" x2="170" y2="160" stroke="#999" stroke-width="1.2" marker-end="url(#apv)"/>
+
+  <rect x="28" y="160" width="284" height="30" rx="4" fill="#fff3cd" stroke="#e0a800" stroke-width="1"/>
+  <text x="170" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#856404">fmt.Fprintf  →  formatted string</text>
+
+  <line x1="170" y1="190" x2="170" y2="202" stroke="#999" stroke-width="1.2" marker-end="url(#apv)"/>
+
+  <rect x="28" y="202" width="284" height="30" rx="4" fill="#f8d7da" stroke="#dc3545" stroke-width="1"/>
+  <text x="170" y="221" text-anchor="middle" font-size="10" font-weight="700" fill="#721c24">struct GC'd  —  data discarded</text>
+
+  <!-- v1 pain points -->
+  <rect x="28" y="244" width="284" height="32" rx="4" fill="#fff3cd" stroke="#e0a800" stroke-width="0.8"/>
+  <text x="170" y="257" text-anchor="middle" font-size="9" fill="#856404">Every call starts from zero.</text>
+  <text x="170" y="269" text-anchor="middle" font-size="9" fill="#856404">No cross-tool joins · no SQL queries.</text>
+
+  <!-- ── RIGHT: v2 proposed ──────────────────────────────────────── -->
+  <rect x="370" y="36" width="320" height="248" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <rect x="370" y="36" width="320" height="28" rx="6" fill="#1e1e2e"/>
+  <rect x="370" y="50" width="320" height="14" fill="#1e1e2e"/>
+  <text x="530" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#cba6f7">v2  —  SQLite-Native (Proposed)</text>
+
+  <!-- v2 flow boxes -->
+  <rect x="388" y="76" width="284" height="30" rx="4" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="530" y="95" text-anchor="middle" font-size="10" fill="#1a1a2e">HTTP fetch  →  raw JSON bytes</text>
+
+  <line x1="530" y1="106" x2="530" y2="118" stroke="#7c6af7" stroke-width="1.2" marker-end="url(#apv2)"/>
+
+  <rect x="388" y="118" width="284" height="30" rx="4" fill="#fafbfc" stroke="#7c6af7" stroke-width="1"/>
+  <text x="530" y="137" text-anchor="middle" font-size="10" fill="#1a1a2e">MapperFunc  →  INSERT INTO SQLite</text>
+
+  <line x1="530" y1="148" x2="530" y2="160" stroke="#7c6af7" stroke-width="1.2" marker-end="url(#apv2)"/>
+
+  <rect x="388" y="160" width="284" height="30" rx="4" fill="#d4edda" stroke="#28a745" stroke-width="1"/>
+  <text x="530" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#155724">In-memory SQLite table  (persists)</text>
+
+  <line x1="530" y1="190" x2="530" y2="202" stroke="#7c6af7" stroke-width="1.2" marker-end="url(#apv2)"/>
+
+  <rect x="388" y="202" width="284" height="30" rx="4" fill="#f0eeff" stroke="#7c6af7" stroke-width="1"/>
+  <text x="530" y="221" text-anchor="middle" font-size="10" fill="#7c6af7">SELECT / JOIN / aggregate  →  result</text>
+
+  <!-- v2 benefits -->
+  <rect x="388" y="244" width="284" height="32" rx="4" fill="#d4edda" stroke="#28a745" stroke-width="0.8"/>
+  <text x="530" y="257" text-anchor="middle" font-size="9" fill="#155724">Data lives in SQL. Cross-tool joins.</text>
+  <text x="530" y="269" text-anchor="middle" font-size="9" fill="#155724">Reuse · query tool · streaming.</text>
+
+  <!-- VS divider -->
+  <rect x="338" y="148" width="26" height="26" rx="13" fill="#7c6af7"/>
+  <text x="351" y="165" text-anchor="middle" font-size="10" font-weight="700" fill="white">VS</text>
+
+</svg>

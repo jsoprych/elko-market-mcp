@@ -1,5 +1,7 @@
 # Tool Reference
 
+![Tool catalogue](img/tools.svg)
+
 Complete reference for all 10 elko tools. Each tool is callable via MCP, CLI, and REST.
 
 **CLI syntax:** `./elko call <tool> key=value ...`

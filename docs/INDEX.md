@@ -85,6 +85,10 @@ This is the master index for the elko-market-mcp technical documentation. All fo
 
 ## Project Overview
 
+![Tools catalogue](img/tools.svg)
+
+![Architecture](img/architecture.svg)
+
 elko-market-mcp is a single Go binary (`elko`) that provides free financial market data through three simultaneous interfaces: MCP stdio server, REST API, and CLI. It aggregates six public data sources into a unified, cached, schema-driven tool catalogue.
 
 ### Source Summary

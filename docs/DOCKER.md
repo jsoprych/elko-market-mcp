@@ -1,5 +1,7 @@
 # Docker Deployment
 
+![Docker build and deployment](img/docker-build.svg)
+
 elko ships with a multi-stage Dockerfile and a docker-compose configuration for easy containerized deployment.
 
 ---

@@ -2,6 +2,8 @@
 
 Get elko running in under 5 minutes.
 
+![Three interfaces](img/interfaces.svg)
+
 ---
 
 ## Table of Contents

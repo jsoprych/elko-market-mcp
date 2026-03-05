@@ -2,6 +2,8 @@
 
 How to configure elko as an MCP (Model Context Protocol) server for various AI clients.
 
+![MCP connection flow](img/mcp-flow.svg)
+
 ---
 
 ## Table of Contents

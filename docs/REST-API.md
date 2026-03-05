@@ -1,5 +1,7 @@
 # REST API Reference
 
+![REST API endpoints](img/rest-endpoints.svg)
+
 The `elko serve` command starts an HTTP server with a REST API and web dashboard.
 
 ```bash
