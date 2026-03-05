@@ -23,6 +23,8 @@ All tools are free, require no API keys (except a contact email for SEC EDGAR), 
 | **FDIC** | `fdic_bank_search`, `fdic_bank_financials` | Find banks by name/state; get assets, deposits, equity, ROA, ROE, capital ratios |
 | **World Bank** | `worldbank_indicator` | GDP, inflation, unemployment, population, debt — any country or global |
 
+![elko tools](docs/img/tools.svg)
+
 ---
 
 ## Quick Start
@@ -194,6 +196,8 @@ services:
 ---
 
 ## Architecture
+
+![elko architecture](docs/img/architecture.svg)
 
 ```
 ┌─────────┐  ┌─────────┐  ┌─────────┐

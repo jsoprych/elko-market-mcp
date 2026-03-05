@@ -1,0 +1,108 @@
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="700" height="400" fill="white"/>
+
+  <!-- ── Title ─────────────────────────────────────────────────────────── -->
+  <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Three-Interface Architecture</text>
+
+  <!-- ── Top row: three interfaces ─────────────────────────────────────── -->
+
+  <!-- MCP stdio -->
+  <rect x="30" y="36" width="150" height="52" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="105" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#cba6f7">MCP stdio</text>
+  <text x="105" y="75" text-anchor="middle" font-size="10" fill="#a6adc8">Claude · Cursor · agents</text>
+
+  <!-- REST API -->
+  <rect x="275" y="36" width="150" height="52" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="350" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#cba6f7">REST API</text>
+  <text x="350" y="75" text-anchor="middle" font-size="10" fill="#a6adc8">curl · Python · Node · browser</text>
+
+  <!-- CLI -->
+  <rect x="520" y="36" width="150" height="52" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="595" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#cba6f7">CLI</text>
+  <text x="595" y="75" text-anchor="middle" font-size="10" fill="#a6adc8">elko call · scripts · pipes</text>
+
+  <!-- Convergence lines → Registry -->
+  <line x1="105" y1="88" x2="105" y2="108" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="350" y1="88" x2="350" y2="108" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="595" y1="88" x2="595" y2="108" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="105" y1="108" x2="595" y2="108" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="350" y1="108" x2="350" y2="126" stroke="#ccc" stroke-width="1.5"/>
+  <!-- Arrow head -->
+  <polygon points="345,122 355,122 350,130" fill="#ccc"/>
+
+  <!-- ── Registry ────────────────────────────────────────────────────────── -->
+  <rect x="175" y="130" width="350" height="52" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="350" y="151" text-anchor="middle" font-size="12" font-weight="700" fill="#7c6af7">Registry</text>
+  <text x="350" y="169" text-anchor="middle" font-size="10" fill="#555">10 tools · JSON schemas · handler functions · thread-safe</text>
+
+  <!-- Arrow → Runner -->
+  <line x1="350" y1="182" x2="350" y2="200" stroke="#ccc" stroke-width="1.5"/>
+  <polygon points="345,196 355,196 350,204" fill="#ccc"/>
+
+  <!-- ── Runner + Cache ─────────────────────────────────────────────────── -->
+  <rect x="190" y="204" width="320" height="62" rx="6" fill="#f8f8fc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="350" y="225" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">Runner + Cache</text>
+  <text x="350" y="241" text-anchor="middle" font-size="10" fill="#555">shared HTTP client · header merging · TTL control</text>
+  <text x="350" y="257" text-anchor="middle" font-size="10" fill="#555">L1 in-memory · L2 SQLite (optional --db flag)</text>
+
+  <!-- Arrow → bus bar -->
+  <line x1="350" y1="266" x2="350" y2="286" stroke="#ccc" stroke-width="1.5"/>
+  <polygon points="345,282 355,282 350,290" fill="#ccc"/>
+
+  <!-- ── Bus bar ─────────────────────────────────────────────────────────── -->
+  <line x1="55" y1="290" x2="645" y2="290" stroke="#ccc" stroke-width="1.5"/>
+
+  <!-- Drop lines to API boxes -->
+  <line x1="55"  y1="290" x2="55"  y2="308" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="163" y1="290" x2="163" y2="308" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="271" y1="290" x2="271" y2="308" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="379" y1="290" x2="379" y2="308" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="487" y1="290" x2="487" y2="308" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="595" y1="290" x2="595" y2="308" stroke="#ccc" stroke-width="1.5"/>
+
+  <!-- ── API boxes ──────────────────────────────────────────────────────── -->
+
+  <!-- Yahoo -->
+  <rect x="10" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="55" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">Yahoo</text>
+  <text x="55" y="341" text-anchor="middle" font-size="9" fill="#777">Finance</text>
+  <text x="55" y="356" text-anchor="middle" font-size="8" fill="#aaa">3 tools</text>
+
+  <!-- EDGAR -->
+  <rect x="118" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="163" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">SEC</text>
+  <text x="163" y="341" text-anchor="middle" font-size="9" fill="#777">EDGAR</text>
+  <text x="163" y="356" text-anchor="middle" font-size="8" fill="#aaa">2 tools</text>
+
+  <!-- Treasury -->
+  <rect x="226" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="271" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">US</text>
+  <text x="271" y="341" text-anchor="middle" font-size="9" fill="#777">Treasury</text>
+  <text x="271" y="356" text-anchor="middle" font-size="8" fill="#aaa">1 tool</text>
+
+  <!-- BLS -->
+  <rect x="334" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="379" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">Bureau of</text>
+  <text x="379" y="341" text-anchor="middle" font-size="9" fill="#777">Labor Stats</text>
+  <text x="379" y="356" text-anchor="middle" font-size="8" fill="#aaa">1 tool</text>
+
+  <!-- FDIC -->
+  <rect x="442" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="487" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">FDIC</text>
+  <text x="487" y="341" text-anchor="middle" font-size="9" fill="#777">Banking</text>
+  <text x="487" y="356" text-anchor="middle" font-size="8" fill="#aaa">2 tools</text>
+
+  <!-- World Bank -->
+  <rect x="550" y="308" width="90" height="56" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="595" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">World</text>
+  <text x="595" y="341" text-anchor="middle" font-size="9" fill="#777">Bank</text>
+  <text x="595" y="356" text-anchor="middle" font-size="8" fill="#aaa">1 tool</text>
+
+  <!-- ── Footer label ───────────────────────────────────────────────────── -->
+  <text x="350" y="388" text-anchor="middle" font-size="10" fill="#aaa">
+    All sources are free public APIs · No API keys required (except SEC_USER_AGENT for EDGAR)
+  </text>
+
+</svg>
