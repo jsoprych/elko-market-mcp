@@ -21,6 +21,8 @@ elko ships with a multi-stage Dockerfile and a docker-compose configuration for 
 
 ## Quick Start
 
+### With docker compose (recommended)
+
 ```bash
 # 1. Set your SEC contact (required for EDGAR tools)
 export SEC_USER_AGENT="MyApp me@example.com"
@@ -35,6 +37,23 @@ open http://localhost:8080
 curl -s -XPOST localhost:8080/v1/call/yahoo_quote \
   -H 'Content-Type: application/json' \
   -d '{"symbol":"AAPL"}'
+```
+
+> **No `docker compose`?** Install the plugin: `sudo apt install docker-compose-plugin`
+> or use the plain `docker` one-liners in [Running Without Compose](#running-without-compose) below.
+
+### One-liner (no compose plugin needed)
+
+```bash
+docker build -t elko-market-mcp . && \
+docker run -d --name elko \
+  -p 8080:8080 \
+  -e SEC_USER_AGENT="MyApp me@example.com" \
+  elko-market-mcp
+
+# Verify
+curl localhost:8080/health
+# → {"status":"ok","tools":10,"version":"0.1.0"}
 ```
 
 ---
@@ -203,7 +222,7 @@ CMD ["serve", "--port", "8080"]
 - `scratch` base = zero OS footprint, no shell, no package manager
 - CA certificates copied from builder for HTTPS calls to external APIs
 - `CGO_ENABLED=0` enables static linking (required for scratch base)
-- Final image size: ~15–20 MB (mostly the Go binary)
+- Final image size: ~11 MB (binary + CA certs only)
 
 ---
 
@@ -233,28 +252,48 @@ docker inspect elko-market-mcp-elko-1 | jq '.[0].State.Health'
 
 ## Running Without Compose
 
+Use these when `docker compose` is not available (e.g. older Docker installs, CI runners, minimal environments).
+
 ```bash
-# Build image
-docker build -t elko .
+# 1. Build
+docker build -t elko-market-mcp .
 
-# Run with in-memory cache
-docker run -p 8080:8080 -e SEC_USER_AGENT="MyApp me@example.com" elko
-
-# Run with persistent cache
-docker run -p 8080:8080 \
+# 2a. Run — in-memory cache (ephemeral, simplest)
+docker run -d --name elko \
+  -p 8080:8080 \
   -e SEC_USER_AGENT="MyApp me@example.com" \
-  -v /home/user/.elko:/data \
-  elko serve --port 8080 --db /data/cache.db
+  elko-market-mcp
 
-# Run CLI mode
+# 2b. Run — persistent SQLite cache (survives restarts)
+docker run -d --name elko \
+  -p 8080:8080 \
+  -e SEC_USER_AGENT="MyApp me@example.com" \
+  -v "$HOME/.elko:/data" \
+  elko-market-mcp serve --port 8080 --db /data/cache.db
+
+# 3. Verify
+curl localhost:8080/health
+# → {"status":"ok","tools":10,"version":"0.1.0"}
+
+curl localhost:8080/v1/sources
+# → {"sources":["bls","edgar","fdic","treasury","worldbank","yahoo"]}
+
+curl -s -XPOST localhost:8080/v1/call/yahoo_quote \
+  -H 'Content-Type: application/json' \
+  -d '{"symbol":"AAPL"}'
+
+# 4. CLI one-shot (no server)
 docker run --rm \
   -e SEC_USER_AGENT="MyApp me@example.com" \
-  elko call yahoo_quote symbol=AAPL
+  elko-market-mcp call yahoo_quote symbol=NVDA
 
-# Run MCP mode (for remote MCP setups)
-docker run -i \
+# 5. MCP mode (pipe stdio — for remote/containerised MCP setups)
+docker run -i --rm \
   -e SEC_USER_AGENT="MyApp me@example.com" \
-  elko mcp
+  elko-market-mcp mcp
+
+# 6. Stop / remove
+docker stop elko && docker rm elko
 ```
 
 ---

@@ -173,6 +173,15 @@ services:
       SEC_USER_AGENT: "MyApp me@example.com"
 ```
 
+**No `docker compose` plugin?**
+
+```bash
+docker build -t elko-market-mcp . && \
+docker run -d --name elko -p 8080:8080 \
+  -e SEC_USER_AGENT="MyApp me@example.com" \
+  elko-market-mcp
+```
+
 ---
 
 ## Architecture
