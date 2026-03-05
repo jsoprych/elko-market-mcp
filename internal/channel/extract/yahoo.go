@@ -86,7 +86,6 @@ func fetchChart(ctx context.Context, ch *channel.Channel, sym, period, interval,
 		} else {
 			params += "&period2=" + strconv.FormatInt(time.Now().Unix(), 10)
 		}
-		params += "&range=max"
 	} else {
 		if period == "" {
 			period = "1mo"
