@@ -257,7 +257,13 @@ Each tool is declared in a **channel JSON spec** (name, schema, HTTP config, ext
 
 ## License
 
-MIT
+Apache 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Copyright 2026 John Soprych / Elko.AI
+
+## Contact
+
+Open an issue or discussion at [github.com/jsoprych/elko-market-mcp](https://github.com/jsoprych/elko-market-mcp)
 
 ---
 
