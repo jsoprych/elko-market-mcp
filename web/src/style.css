@@ -4,6 +4,55 @@
  * This file is intentionally minimal: structure + legibility, no decorative opinions.
  */
 
+/* ── Design tokens (CSS custom properties) ───────────────────────────────── */
+/* Override these in a theme stylesheet or via JS to switch themes.           */
+/* Example dark mode: .elko-theme-dark { --elko-bg: #1a1a2e; ... }           */
+
+:root {
+  /* Palette */
+  --elko-accent:          #7c6af7;
+  --elko-accent-hover:    #6a58e5;
+  --elko-accent-active:   #5a48d5;
+  --elko-accent-dim:      rgba(124, 106, 247, 0.12);
+
+  /* Surface */
+  --elko-bg-page:         #f5f6f8;
+  --elko-bg-surface:      #ffffff;
+  --elko-bg-raised:       #fafbfc;
+  --elko-bg-muted:        #f0f1f5;
+  --elko-bg-sidebar:      #1e1e2e;
+  --elko-bg-sidebar-item: #313244;
+  --elko-bg-sidebar-active: #45475a;
+
+  /* Text */
+  --elko-text:            #1a1a2e;
+  --elko-text-muted:      #555555;
+  --elko-text-subtle:     #999999;
+  --elko-text-sidebar:    #cdd6f4;
+  --elko-text-sidebar-dim: #a6adc8;
+  --elko-text-sidebar-min: #6c7086;
+  --elko-text-accent:     #cba6f7;
+
+  /* Border */
+  --elko-border:          #e1e4e8;
+  --elko-border-input:    #d0d7de;
+  --elko-border-sidebar:  #313244;
+  --elko-border-sidebar-group: #2a2a3e;
+
+  /* Status */
+  --elko-error-bg:        #fff0f0;
+  --elko-error-text:      #c0392b;
+  --elko-error-border:    #f5c6cb;
+
+  /* Chart */
+  --elko-chart-line:      #7c6af7;
+  --elko-chart-area:      rgba(124, 106, 247, 0.07);
+  --elko-chart-bar:       #7c6af7;
+  --elko-chart-grid:      #e8eaf0;
+  --elko-chart-axis:      #cccccc;
+  --elko-chart-tick:      #999999;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
@@ -12,8 +61,8 @@
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  background: #f5f6f8;
-  color: #1a1a2e;
+  background: var(--elko-bg-page, #f5f6f8);
+  color: var(--elko-text, #1a1a2e);
   height: 100vh;
   overflow: hidden;
 }
@@ -29,8 +78,8 @@
   width: 220px;
   min-width: 160px;
   flex-shrink: 0;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  background: var(--elko-bg-sidebar, #1e1e2e);
+  color: var(--elko-text-sidebar, #cdd6f4);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -38,26 +87,47 @@
 }
 
 .elko-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 14px 16px;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #cba6f7;
-  border-bottom: 1px solid #313244;
+  color: var(--elko-text-accent, #cba6f7);
+  border-bottom: 1px solid var(--elko-border-sidebar, #313244);
   flex-shrink: 0;
 }
+
+.elko-sidebar-title { flex: 1; }
+
+.elko-theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: var(--elko-text-sidebar-dim, #a6adc8);
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.elko-theme-toggle:hover  { opacity: 1; }
+.elko-theme-toggle:active { opacity: 0.6; }
 
 /* ── Nav tree ─────────────────────────────────────────────────────────────── */
 
 .elko-nav { flex: 1; }
 
-.elko-source-group { border-bottom: 1px solid #2a2a3e; }
+.elko-source-group { border-bottom: 1px solid var(--elko-border-sidebar-group, #2a2a3e); }
 
 .elko-source-header {
   width: 100%;
   background: none;
   border: none;
-  color: #a6adc8;
+  color: var(--elko-text-sidebar-dim, #a6adc8);
   text-align: left;
   padding: 8px 16px;
   cursor: pointer;
@@ -66,7 +136,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.elko-source-header:hover { color: #cdd6f4; background: #252535; }
+.elko-source-header:hover { color: var(--elko-text-sidebar, #cdd6f4); background: var(--elko-bg-sidebar-item, #252535); }
 
 .elko-source-body { display: none; }
 .elko-source-group.open .elko-source-body { display: block; }
@@ -75,7 +145,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: #6c7086;
+  color: var(--elko-text-sidebar-min, #6c7086);
   text-align: left;
   padding: 5px 16px 5px 26px;
   cursor: pointer;
@@ -83,7 +153,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.elko-cat-header:hover { color: #a6adc8; }
+.elko-cat-header:hover { color: var(--elko-text-sidebar-dim, #a6adc8); }
 
 .elko-tool-list { list-style: none; display: none; }
 .elko-cat-group.open .elko-tool-list { display: block; }
@@ -92,13 +162,13 @@
   padding: 5px 16px 5px 34px;
   cursor: pointer;
   font-size: 13px;
-  color: #a6adc8;
+  color: var(--elko-text-sidebar-dim, #a6adc8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.elko-tool-item:hover  { background: #313244; color: #cdd6f4; }
-.elko-tool-item.active { background: #45475a; color: #cba6f7; }
+.elko-tool-item:hover  { background: var(--elko-bg-sidebar-item, #313244); color: var(--elko-text-sidebar, #cdd6f4); }
+.elko-tool-item.active { background: var(--elko-bg-sidebar-active, #45475a); color: var(--elko-text-accent, #cba6f7); }
 
 /* ── Workspace ────────────────────────────────────────────────────────────── */
 
@@ -113,8 +183,8 @@
 .elko-upper {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid #e1e4e8;
-  background: #fff;
+  border-bottom: 1px solid var(--elko-border, #e1e4e8);
+  background: var(--elko-bg-surface, #fff);
   max-height: 55vh;
   overflow: hidden;
 }
@@ -123,7 +193,7 @@
   padding: 24px 28px;
   overflow-y: auto;
   flex-shrink: 0;
-  border-right: 1px solid #e8eaf0;
+  border-right: 1px solid var(--elko-border, #e8eaf0);
 }
 
 /* Hidden by default; shown when tool.chart is set */
@@ -150,8 +220,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 5px 28px;
-  background: #f0f1f5;
-  border-bottom: 1px solid #e1e4e8;
+  background: var(--elko-bg-muted, #f0f1f5);
+  border-bottom: 1px solid var(--elko-border, #e1e4e8);
   min-height: 34px;
   flex-shrink: 0;
 }
@@ -159,18 +229,18 @@
 .elko-toolbar-nav { display: flex; align-items: center; gap: 3px; }
 
 .elko-toolbar-btn {
-  background: #fff;
-  border: 1px solid #d0d7de;
+  background: var(--elko-bg-surface, #fff);
+  border: 1px solid var(--elko-border-input, #d0d7de);
   border-radius: 4px;
   padding: 3px 10px;
   cursor: pointer;
   font-size: 12px;
-  color: #333;
+  color: var(--elko-text, #333);
   line-height: 1.5;
 }
 .elko-toolbar-btn:disabled          { opacity: 0.35; cursor: default; }
-.elko-toolbar-btn:not(:disabled):hover { background: #f6f8fa; border-color: #a8b1bb; }
-.elko-toolbar-btn:not(:disabled):active { background: #eef0f4; }
+.elko-toolbar-btn:not(:disabled):hover { background: var(--elko-bg-muted, #f6f8fa); border-color: var(--elko-text-subtle, #a8b1bb); }
+.elko-toolbar-btn:not(:disabled):active { background: var(--elko-bg-muted, #eef0f4); }
 
 .elko-toolbar-btn--copy { }
 
@@ -183,19 +253,19 @@
 
 .elko-toolbar-fmt {
   padding: 3px 6px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--elko-border-input, #d0d7de);
   border-radius: 4px;
   font-size: 11px;
-  color: #555;
-  background: #fff;
+  color: var(--elko-text-muted, #555);
+  background: var(--elko-bg-surface, #fff);
   cursor: pointer;
   line-height: 1.5;
 }
-.elko-toolbar-fmt:focus { outline: none; border-color: #7c6af7; }
+.elko-toolbar-fmt:focus { outline: none; border-color: var(--elko-accent, #7c6af7); }
 
 .elko-toolbar-counter {
   font-size: 11px;
-  color: #999;
+  color: var(--elko-text-subtle, #999);
   padding-left: 6px;
   min-width: 44px;
 }
@@ -206,52 +276,52 @@
   flex: 1;
   padding: 16px 28px;
   overflow-y: auto;
-  background: #fafbfc;
+  background: var(--elko-bg-raised, #fafbfc);
 }
 
 /* ── Welcome / error states ───────────────────────────────────────────────── */
 
 .elko-welcome {
-  color: #888;
+  color: var(--elko-text-subtle, #888);
   font-size: 13px;
   padding: 8px 0;
 }
 
 .elko-load-error {
   padding: 12px 16px;
-  color: #e55;
+  color: var(--elko-error-text, #e55);
   font-size: 12px;
 }
 
 /* ── Form ─────────────────────────────────────────────────────────────────── */
 
 .elko-form-header   { margin-bottom: 18px; }
-.elko-tool-title    { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-.elko-tool-desc     { color: #555; font-size: 13px; max-width: 600px; }
+.elko-tool-title    { font-size: 17px; font-weight: 700; margin-bottom: 4px; color: var(--elko-text, #1a1a2e); }
+.elko-tool-desc     { color: var(--elko-text-muted, #555); font-size: 13px; max-width: 600px; }
 
 .elko-form          { display: grid; gap: 13px; max-width: 560px; }
-.elko-no-params     { font-size: 13px; color: #888; }
+.elko-no-params     { font-size: 13px; color: var(--elko-text-subtle, #888); }
 
 .elko-field-group   { display: flex; flex-direction: column; gap: 3px; }
-.elko-field-label   { font-size: 12px; font-weight: 600; color: #333; }
+.elko-field-label   { font-size: 12px; font-weight: 600; color: var(--elko-text, #333); }
 .elko-required      { color: #d44; }
-.elko-field-hint    { font-size: 11px; color: #999; }
+.elko-field-hint    { font-size: 11px; color: var(--elko-text-subtle, #999); }
 
 .elko-input-wrap    { display: contents; } /* transparent wrapper for datalist */
 
 .elko-input {
   padding: 6px 9px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--elko-border-input, #d0d7de);
   border-radius: 5px;
   font-size: 13px;
-  background: #fff;
-  color: #1a1a2e;
+  background: var(--elko-bg-surface, #fff);
+  color: var(--elko-text, #1a1a2e);
   width: 100%;
 }
 .elko-input:focus {
   outline: none;
-  border-color: #7c6af7;
-  box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.12);
+  border-color: var(--elko-accent, #7c6af7);
+  box-shadow: 0 0 0 3px var(--elko-accent-dim, rgba(124, 106, 247, 0.12));
 }
 
 .elko-input--select { cursor: pointer; }
@@ -262,7 +332,7 @@
   height: 16px;
   width: 16px;
   cursor: pointer;
-  accent-color: #7c6af7;
+  accent-color: var(--elko-accent, #7c6af7);
 }
 
 .elko-form-actions  { padding-top: 4px; }
@@ -275,9 +345,9 @@
   font-size: 13px;
   font-weight: 600;
 }
-.elko-btn--run              { background: #7c6af7; color: #fff; }
-.elko-btn--run:hover        { background: #6a58e5; }
-.elko-btn--run:active       { background: #5a48d5; }
+.elko-btn--run              { background: var(--elko-accent, #7c6af7); color: #fff; }
+.elko-btn--run:hover        { background: var(--elko-accent-hover, #6a58e5); }
+.elko-btn--run:active       { background: var(--elko-accent-active, #5a48d5); }
 
 /* ── Result panel ─────────────────────────────────────────────────────────── */
 
@@ -286,11 +356,11 @@
   border-radius: 5px;
   font-size: 13px;
 }
-.elko-result-status--loading { color: #7c6af7; }
+.elko-result-status--loading { color: var(--elko-accent, #7c6af7); }
 .elko-result-status--error   {
-  background: #fff0f0;
-  color: #c0392b;
-  border: 1px solid #f5c6cb;
+  background: var(--elko-error-bg, #fff0f0);
+  color: var(--elko-error-text, #c0392b);
+  border: 1px solid var(--elko-error-border, #f5c6cb);
 }
 
 .elko-result-output {
@@ -299,10 +369,10 @@
   line-height: 1.6;
   white-space: pre;
   overflow-x: auto;
-  color: #1a1a2e;
+  color: var(--elko-text, #1a1a2e);
 }
 
-.elko-result-empty { color: #999; font-size: 13px; }
+.elko-result-empty { color: var(--elko-text-subtle, #999); font-size: 13px; }
 
 /* ── Result titles ────────────────────────────────────────────────────────── */
 
@@ -310,7 +380,7 @@
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 10px;
-  color: #1a1a2e;
+  color: var(--elko-text, #1a1a2e);
 }
 
 /* ── Tabular results ──────────────────────────────────────────────────────── */
@@ -324,28 +394,28 @@
 .elko-result-table th {
   text-align: left;
   padding: 5px 16px 5px 0;
-  border-bottom: 2px solid #e1e4e8;
-  color: #555;
+  border-bottom: 2px solid var(--elko-border, #e1e4e8);
+  color: var(--elko-text-muted, #555);
   font-weight: 700;
   white-space: nowrap;
 }
 .elko-result-table td {
   padding: 4px 16px 4px 0;
-  border-bottom: 1px solid #f0f1f4;
+  border-bottom: 1px solid var(--elko-border, #f0f1f4);
   white-space: nowrap;
-  color: #1a1a2e;
+  color: var(--elko-text, #1a1a2e);
 }
-.elko-result-table tbody tr:hover td { background: #f6f8fa; }
+.elko-result-table tbody tr:hover td { background: var(--elko-bg-muted, #f6f8fa); }
 
 /* ── Key-value table ──────────────────────────────────────────────────────── */
 
 .elko-result-table--kv th.elko-kv-key {
-  color: #666;
+  color: var(--elko-text-muted, #666);
   font-weight: 600;
   width: 220px;
   padding-right: 24px;
 }
-.elko-result-table--kv td.elko-kv-val { color: #1a1a2e; }
+.elko-result-table--kv td.elko-kv-val { color: var(--elko-text, #1a1a2e); }
 
 /* ── Sections (fdic_bank_financials) ──────────────────────────────────────── */
 
@@ -355,10 +425,10 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #7c6af7;
+  color: var(--elko-accent, #7c6af7);
   margin-bottom: 6px;
   padding-top: 10px;
-  border-top: 1px solid #e8eaf0;
+  border-top: 1px solid var(--elko-border, #e8eaf0);
 }
 .elko-result-section:first-child .elko-result-section-title { border-top: none; }
 
@@ -371,10 +441,65 @@
 .elko-overflow-toggle {
   background: none;
   border: none;
-  color: #7c6af7;
+  color: var(--elko-accent, #7c6af7);
   cursor: pointer;
   font-size: 12px;
   font-family: inherit;
   padding: 0;
 }
 .elko-overflow-toggle:hover { text-decoration: underline; }
+
+/* ── Chart SVG elements ───────────────────────────────────────────────────── */
+/* All chart SVG elements have elko- class names so themes can override them  */
+/* via CSS injection without touching JS. The fill/stroke attributes set by   */
+/* chart.js serve as fallback defaults; CSS properties take precedence.       */
+
+.elko-chart-gridline { stroke: var(--elko-chart-grid, #e8eaf0); }
+.elko-chart-axis     { stroke: var(--elko-chart-axis, #cccccc); }
+.elko-chart-label    { fill:   var(--elko-chart-tick, #999999); }
+.elko-chart-line     { stroke: var(--elko-chart-line, #7c6af7); }
+.elko-chart-area     { fill:   var(--elko-chart-area, rgba(124,106,247,0.07)); }
+.elko-chart-bar      { fill:   var(--elko-chart-bar,  #7c6af7); }
+
+/* ── Dark theme token overrides ───────────────────────────────────────────── */
+/* Activate: document.body.dataset.theme = 'dark'                             */
+/* Or use:   @media (prefers-color-scheme: dark) { ... }                      */
+
+[data-theme="dark"] {
+  --elko-accent:          #9b8ff9;
+  --elko-accent-hover:    #8a7ef0;
+  --elko-accent-active:   #7a6ee0;
+  --elko-accent-dim:      rgba(155, 143, 249, 0.15);
+
+  --elko-bg-page:         #0f0f17;
+  --elko-bg-surface:      #1a1a27;
+  --elko-bg-raised:       #16161f;
+  --elko-bg-muted:        #22222f;
+  --elko-bg-sidebar:      #0d0d14;
+  --elko-bg-sidebar-item: #252535;
+  --elko-bg-sidebar-active: #2d2d42;
+
+  --elko-text:            #e4e4f0;
+  --elko-text-muted:      #aaaacc;
+  --elko-text-subtle:     #666680;
+  --elko-text-sidebar:    #cdd6f4;
+  --elko-text-sidebar-dim: #8888aa;
+  --elko-text-sidebar-min: #55556a;
+  --elko-text-accent:     #cba6f7;
+
+  --elko-border:          #2a2a3e;
+  --elko-border-input:    #3a3a52;
+  --elko-border-sidebar:  #1e1e2e;
+  --elko-border-sidebar-group: #1a1a28;
+
+  --elko-error-bg:        #2a1010;
+  --elko-error-text:      #ff6b6b;
+  --elko-error-border:    #5a2020;
+
+  --elko-chart-line:      #9b8ff9;
+  --elko-chart-area:      rgba(155, 143, 249, 0.08);
+  --elko-chart-bar:       #9b8ff9;
+  --elko-chart-grid:      #2a2b3d;
+  --elko-chart-axis:      #3a3a52;
+  --elko-chart-tick:      #666680;
+}

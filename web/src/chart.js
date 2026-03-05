@@ -19,6 +19,22 @@ const CLR = {
 };
 const PAD = { t: 14, r: 18, b: 34, l: 52 };
 
+// CSS class names for all SVG chart elements.
+// Adding classes here makes theming (dark mode, white-label) trivial via CSS:
+//   .elko-theme-dark .elko-chart-gridline { stroke: #2a2b35; }
+//   .elko-theme-dark .elko-chart-label    { fill: #666; }
+const CLS = {
+  svg:      'elko-chart',
+  gridline: 'elko-chart-gridline',
+  label:    'elko-chart-label',
+  labelX:   'elko-chart-label elko-chart-label--x',
+  labelY:   'elko-chart-label elko-chart-label--y',
+  area:     'elko-chart-area',
+  line:     'elko-chart-line',
+  bar:      'elko-chart-bar',
+  axis:     'elko-chart-axis',
+};
+
 /**
  * @param {string}      text          raw result text
  * @param {string}      resultFormat  "csv" | "table"
@@ -64,6 +80,7 @@ function buildSVG(labels, values, type, yLabel) {
 
   const svg = svgEl('svg');
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('class', CLS.svg);
   svg.style.cssText = 'width:100%;height:auto;display:block;';
 
   // ── Gridlines + y-axis labels (5 levels) ──────────────────────────────────
@@ -74,10 +91,12 @@ function buildSVG(labels, values, type, yLabel) {
 
     const g = svgEl('line');
     attrs(g, { x1: PAD.l, x2: PAD.l + cW, y1: y, y2: y, stroke: CLR.grid, 'stroke-width': 1 });
+    g.setAttribute('class', CLS.gridline);
     svg.appendChild(g);
 
     const t = svgEl('text');
     attrs(t, { x: PAD.l - 5, y: y + 3.5, 'text-anchor': 'end', 'font-size': 9, fill: CLR.tick });
+    t.setAttribute('class', CLS.labelY);
     t.textContent = fmtVal(v);
     svg.appendChild(t);
   }
@@ -93,6 +112,7 @@ function buildSVG(labels, values, type, yLabel) {
       const h = Math.max(1, PAD.t + cH - y);
       const r = svgEl('rect');
       attrs(r, { x, y, width: Math.max(1, barW), height: h, fill: CLR.bar, opacity: 0.78, rx: 1.5 });
+      r.setAttribute('class', CLS.bar);
       svg.appendChild(r);
     });
   } else {
@@ -105,6 +125,7 @@ function buildSVG(labels, values, type, yLabel) {
     const area = svgEl('polygon');
     area.setAttribute('points', `${x0},${base} ${pts} ${xN},${base}`);
     area.setAttribute('fill', CLR.area);
+    area.setAttribute('class', CLS.area);
     svg.appendChild(area);
 
     // Line
@@ -113,6 +134,7 @@ function buildSVG(labels, values, type, yLabel) {
       points: pts, fill: 'none', stroke: CLR.line,
       'stroke-width': 1.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
     });
+    line.setAttribute('class', CLS.line);
     svg.appendChild(line);
   }
 
@@ -125,6 +147,7 @@ function buildSVG(labels, values, type, yLabel) {
       : toX(i);
     const t = svgEl('text');
     attrs(t, { x: x.toFixed(1), y: H - 5, 'text-anchor': 'middle', 'font-size': 9, fill: CLR.tick });
+    t.setAttribute('class', CLS.labelX);
     t.textContent = lbl.length > 10 ? lbl.slice(0, 10) : lbl;
     svg.appendChild(t);
   });
@@ -132,6 +155,7 @@ function buildSVG(labels, values, type, yLabel) {
   // ── Y-axis line ───────────────────────────────────────────────────────────
   const ax = svgEl('line');
   attrs(ax, { x1: PAD.l, x2: PAD.l, y1: PAD.t, y2: PAD.t + cH, stroke: CLR.axis, 'stroke-width': 1 });
+  ax.setAttribute('class', CLS.axis);
   svg.appendChild(ax);
 
   return svg;

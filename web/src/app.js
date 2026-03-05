@@ -8,6 +8,7 @@
  *   - Export toolbar: format selector (txt/csv/json) + download + copy
  *   - URL state: ?tool=name&arg=val — bookmarkable, auto-runs on load
  *   - Result history: in-app back/forward, up to HISTORY_LIMIT entries
+ *   - Light / dark theme toggle (persisted to localStorage)
  */
 
 import { fetchCatalogue }             from './catalogue.js';
@@ -19,6 +20,22 @@ import { renderChart }                from './chart.js';
 import { exportData, exportFilename } from './export.js';
 
 const HISTORY_LIMIT = 50;
+const THEME_KEY     = 'elko-theme';
+
+// ── Theme helpers (run before render to avoid flash) ──────────────────────────
+
+function getStoredTheme() {
+  const v = localStorage.getItem(THEME_KEY);
+  return v === 'dark' || v === 'light' ? v : null;
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+// Apply before first paint: stored preference → system preference → light
+applyTheme(getStoredTheme() ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
 async function init() {
   const app = document.getElementById('app');
@@ -34,7 +51,28 @@ async function init() {
   const resultPanel   = mk('div',   'elko-result-panel');
 
   const sidebarHeader = mk('div', 'elko-sidebar-header');
-  sidebarHeader.textContent = 'elko market';
+
+  const sidebarTitle = mk('span', 'elko-sidebar-title');
+  sidebarTitle.textContent = 'elko market';
+
+  const themeBtn = mk('button', 'elko-theme-toggle');
+  themeBtn.type  = 'button';
+  themeBtn.title = 'Toggle light / dark mode';
+
+  function syncThemeBtn() {
+    const dark = document.body.dataset.theme === 'dark';
+    themeBtn.textContent = dark ? '☀' : '☾';
+    themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  syncThemeBtn();
+
+  themeBtn.addEventListener('click', () => {
+    applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+    syncThemeBtn();
+  });
+
+  sidebarHeader.appendChild(sidebarTitle);
+  sidebarHeader.appendChild(themeBtn);
   sidebar.appendChild(sidebarHeader);
 
   upper.appendChild(toolPanel);
