@@ -1,0 +1,97 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
+     font-family="Arial Black,Arial,sans-serif">
+
+  <defs>
+    <clipPath id="ll">
+      <circle cx="63" cy="117" r="22"/>
+    </clipPath>
+    <clipPath id="rl">
+      <circle cx="137" cy="117" r="22"/>
+    </clipPath>
+    <radialGradient id="face-grad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%"   stop-color="#FFD84A"/>
+      <stop offset="100%" stop-color="#E8A000"/>
+    </radialGradient>
+    <radialGradient id="lens-r-grad" cx="40%" cy="40%" r="65%">
+      <stop offset="0%"   stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0ead8"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── Drop shadow ──────────────────────────────────────────────── -->
+  <circle cx="103" cy="122" r="79" fill="rgba(0,0,0,0.18)"/>
+
+  <!-- ── Face ────────────────────────────────────────────────────── -->
+  <circle cx="100" cy="118" r="79" fill="url(#face-grad)" stroke="#C88000" stroke-width="1.5"/>
+
+  <!-- ── Cheeks ───────────────────────────────────────────────────── -->
+  <ellipse cx="22"  cy="148" rx="17" ry="11" fill="#F08080" opacity="0.42"/>
+  <ellipse cx="178" cy="148" rx="17" ry="11" fill="#F08080" opacity="0.42"/>
+
+  <!-- ── Smile ────────────────────────────────────────────────────── -->
+  <path d="M70,158 Q100,183 130,158" fill="none" stroke="#8B6000" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- ── Temple bands ─────────────────────────────────────────────── -->
+  <line x1="8"  y1="114" x2="35" y2="117" stroke="#2a1800" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="165" y1="117" x2="192" y2="114" stroke="#2a1800" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- ── LEFT glasses frame (AI) ──────────────────────────────────── -->
+  <circle cx="63" cy="117" r="30" fill="#2a1800"/>
+  <circle cx="63" cy="117" r="24" fill="#8B0D0D"/>
+  <!-- AI text -->
+  <text x="63" y="125" text-anchor="middle" font-size="21" font-weight="900"
+        fill="white" letter-spacing="-1">AI</text>
+  <!-- Subtle glare -->
+  <ellipse cx="54" cy="107" rx="7" ry="4" fill="white" opacity="0.18" transform="rotate(-30,54,107)"/>
+
+  <!-- ── RIGHT glasses frame (candlestick chart) ──────────────────── -->
+  <circle cx="137" cy="117" r="30" fill="#2a1800"/>
+  <circle cx="137" cy="117" r="24" fill="url(#lens-r-grad)"/>
+
+  <!-- Candlestick chart clipped to right lens -->
+  <g clip-path="url(#rl)">
+    <!-- Grid lines -->
+    <line x1="113" y1="122" x2="161" y2="122" stroke="#ddd" stroke-width="0.8"/>
+    <line x1="113" y1="114" x2="161" y2="114" stroke="#eee" stroke-width="0.6"/>
+    <!-- Candle 1 — red -->
+    <line x1="119" y1="107" x2="119" y2="130" stroke="#CC2222" stroke-width="1.2"/>
+    <rect x="116" y="114" width="6" height="10" fill="#CC2222" rx="0.5"/>
+    <!-- Candle 2 — green -->
+    <line x1="127" y1="109" x2="127" y2="126" stroke="#228833" stroke-width="1.2"/>
+    <rect x="124" y="113" width="6" height="9"  fill="#228833" rx="0.5"/>
+    <!-- Candle 3 — green -->
+    <line x1="135" y1="105" x2="135" y2="122" stroke="#228833" stroke-width="1.2"/>
+    <rect x="132" y="107" width="6" height="10" fill="#228833" rx="0.5"/>
+    <!-- Candle 4 — red -->
+    <line x1="143" y1="104" x2="143" y2="118" stroke="#CC2222" stroke-width="1.2"/>
+    <rect x="140" y="106" width="6" height="8"  fill="#CC2222" rx="0.5"/>
+    <!-- Candle 5 — green (tall, upward) -->
+    <line x1="151" y1="99"  x2="151" y2="118" stroke="#228833" stroke-width="1.2"/>
+    <rect x="148" y="101" width="6" height="12" fill="#228833" rx="0.5"/>
+    <!-- Trend arrow (purple) -->
+    <polyline points="117,128 127,120 135,115 143,110 151,104"
+              fill="none" stroke="#7c6af7" stroke-width="1.8" opacity="0.75"
+              stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Glare on right lens -->
+  <ellipse cx="126" cy="107" rx="7" ry="4" fill="white" opacity="0.22" transform="rotate(-30,126,107)"/>
+
+  <!-- ── Bridge ─────────────────────────────────────────────────── -->
+  <rect x="93" y="112" width="14" height="5" rx="2.5" fill="#3a2600"/>
+
+  <!-- ── Eyebrows ───────────────────────────────────────────────── -->
+  <path d="M38,92 Q63,84 88,90"   fill="none" stroke="#6B4400" stroke-width="4" stroke-linecap="round"/>
+  <path d="M112,90 Q137,84 162,92" fill="none" stroke="#6B4400" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- ── Yin-yang (on top of head) ─────────────────────────────── -->
+  <g transform="translate(100,35)">
+    <circle r="19" fill="#f0f0ee" stroke="#333" stroke-width="1.2"/>
+    <!-- Dark (navy) half -->
+    <path d="M0,19 A19,19 0 0,1 0,-19 A9.5,9.5 0 0,1 0,0 A9.5,9.5 0 0,0 0,19 Z" fill="#1a1a2e"/>
+    <!-- White dot in dark half -->
+    <circle cy="-9.5" r="4.5" fill="#f0f0ee"/>
+    <!-- Dark dot in light half -->
+    <circle cy="9.5"  r="4.5" fill="#1a1a2e"/>
+  </g>
+
+</svg>

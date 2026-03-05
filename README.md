@@ -1,4 +1,4 @@
-# elko-market-mcp
+![elko-market-mcp](docs/img/header.svg)
 
 **Free financial market data for AI agents, CLIs, and REST clients.**
 
