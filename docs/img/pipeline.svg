@@ -1,0 +1,97 @@
+<svg viewBox="0 0 660 580" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="660" height="580" fill="white"/>
+
+  <text x="330" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Channel Call Pipeline</text>
+
+  <!-- ── Helper: arrow marker ────────────────────────────────────── -->
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#999"/>
+    </marker>
+    <marker id="arr-hit" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#28c940"/>
+    </marker>
+  </defs>
+
+  <!-- ── Box dimensions: w=300, h=40, cx=230 ───────────────────── -->
+
+  <!-- 1. Caller -->
+  <rect x="80" y="36" width="300" height="44" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="230" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#cba6f7">Caller</text>
+  <text x="230" y="72" text-anchor="middle" font-size="10" fill="#a6adc8">MCP · REST · CLI</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="230" y1="80" x2="230" y2="100" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 2. Registry.Call -->
+  <rect x="80" y="100" width="300" height="44" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="230" y="121" text-anchor="middle" font-size="12" font-weight="700" fill="#7c6af7">Registry.Call(name, args)</text>
+  <text x="230" y="136" text-anchor="middle" font-size="10" fill="#555">unified tool catalogue · RWMutex</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="230" y1="144" x2="230" y2="164" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 3. ExtractorFunc -->
+  <rect x="80" y="164" width="300" height="52" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="230" y="185" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">ExtractorFunc</text>
+  <text x="230" y="200" text-anchor="middle" font-size="10" fill="#555">parse args · build URL</text>
+  <text x="230" y="212" text-anchor="middle" font-size="9" fill="#888">source-specific Go code  (extract/*.go)</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="230" y1="216" x2="230" y2="236" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 4. channel.Fetch -->
+  <rect x="80" y="236" width="300" height="44" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="230" y="257" text-anchor="middle" font-size="12" font-weight="700" fill="#7c6af7">channel.Fetch(ctx, url)</text>
+  <text x="230" y="272" text-anchor="middle" font-size="10" fill="#555">centralized in runner.go</text>
+
+  <!-- Arrow 4→5 (cache check) -->
+  <line x1="230" y1="280" x2="230" y2="300" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 5. Cache check -->
+  <rect x="80" y="300" width="300" height="44" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="230" y="321" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">cache.Get(key)</text>
+  <text x="230" y="336" text-anchor="middle" font-size="10" fill="#555">L1 memory  ·  L2 SQLite (optional)</text>
+
+  <!-- Cache HIT branch (right) -->
+  <line x1="380" y1="322" x2="460" y2="322" stroke="#28c940" stroke-width="1.5" marker-end="url(#arr-hit)"/>
+  <text x="420" y="316" text-anchor="middle" font-size="9" fill="#28c940">HIT</text>
+  <rect x="460" y="302" width="130" height="40" rx="5" fill="#f0fff4" stroke="#28c940" stroke-width="1.2"/>
+  <text x="525" y="319" text-anchor="middle" font-size="10" font-weight="700" fill="#28c940">return cached</text>
+  <text x="525" y="333" text-anchor="middle" font-size="9" fill="#555">bytes → skip HTTP</text>
+
+  <!-- Cache MISS label -->
+  <text x="248" y="295" font-size="9" fill="#e85d75">MISS</text>
+  <line x1="230" y1="344" x2="230" y2="364" stroke="#e85d75" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 6. http.Client.Get -->
+  <rect x="80" y="364" width="300" height="44" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="230" y="385" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">http.Client.Get(url)</text>
+  <text x="230" y="400" text-anchor="middle" font-size="10" fill="#555">single shared client · merged headers</text>
+
+  <!-- Arrow 6→7 -->
+  <line x1="230" y1="408" x2="230" y2="428" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 7. cache.Set -->
+  <rect x="80" y="428" width="300" height="36" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="230" y="449" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">cache.Set(key, body, TTL)</text>
+  <text x="230" y="461" text-anchor="middle" font-size="9" fill="#888">write to L1 + L2</text>
+
+  <!-- Arrow 7→8 -->
+  <line x1="230" y1="464" x2="230" y2="484" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 8. Unmarshal + format -->
+  <rect x="80" y="484" width="300" height="44" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="230" y="505" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">json.Unmarshal · filter · format</text>
+  <text x="230" y="520" text-anchor="middle" font-size="10" fill="#555">CSV / table / kv / sections string</text>
+
+  <!-- Arrow 8→caller -->
+  <line x1="230" y1="528" x2="230" y2="548" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 9. return to caller -->
+  <rect x="80" y="548" width="300" height="24" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="230" y="564" text-anchor="middle" font-size="10" fill="#a6adc8">return (string, error)  →  Caller</text>
+
+</svg>

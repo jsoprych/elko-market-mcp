@@ -1,0 +1,145 @@
+<svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="760" height="320" fill="white"/>
+
+  <!-- ── Outer frame shadow ──────────────────────────────────────── -->
+  <rect x="10" y="10" width="740" height="300" rx="8" fill="#e0e0e8" />
+  <rect x="8"  y="8"  width="740" height="300" rx="8" fill="#1e1e2e" stroke="#45475a" stroke-width="1"/>
+
+  <!-- ── Top bar ────────────────────────────────────────────────── -->
+  <rect x="8" y="8" width="740" height="36" rx="8" fill="#181825"/>
+  <rect x="8" y="28" width="740" height="16" fill="#181825"/>
+
+  <!-- Traffic lights -->
+  <circle cx="30" cy="26" r="5" fill="#ff5f57"/>
+  <circle cx="46" cy="26" r="5" fill="#ffbd2e"/>
+  <circle cx="62" cy="26" r="5" fill="#28c940"/>
+
+  <!-- Title -->
+  <text x="378" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#cba6f7" letter-spacing="2">elko</text>
+
+  <!-- Nav buttons -->
+  <rect x="590" y="16" width="24" height="20" rx="3" fill="#313244" stroke="#45475a" stroke-width="1"/>
+  <text x="602" y="30" text-anchor="middle" font-size="11" fill="#a6adc8">◀</text>
+  <rect x="618" y="16" width="24" height="20" rx="3" fill="#313244" stroke="#45475a" stroke-width="1"/>
+  <text x="630" y="30" text-anchor="middle" font-size="11" fill="#a6adc8">▶</text>
+  <rect x="648" y="16" width="72" height="20" rx="3" fill="#313244" stroke="#45475a" stroke-width="1"/>
+  <text x="684" y="30" text-anchor="middle" font-size="10" fill="#a6adc8">↓ txt ▾</text>
+
+  <!-- Theme toggle -->
+  <rect x="560" y="16" width="24" height="20" rx="3" fill="#313244" stroke="#45475a" stroke-width="1"/>
+  <text x="572" y="30" text-anchor="middle" font-size="11" fill="#cba6f7">☀</text>
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+  <rect x="8" y="44" width="172" height="264" fill="#181825"/>
+
+  <!-- Sidebar header -->
+  <text x="20" y="64" font-size="10" font-weight="700" fill="#cba6f7" letter-spacing="1">SOURCES</text>
+
+  <!-- Yahoo group -->
+  <text x="20" y="86"  font-size="11" fill="#cba6f7">▼ yahoo</text>
+  <text x="36" y="103" font-size="10" fill="#6c7086">○  quote</text>
+  <text x="36" y="118" font-size="10" fill="#89b4fa" font-weight="600">●  history</text>
+  <text x="36" y="133" font-size="10" fill="#6c7086">○  dividends</text>
+
+  <!-- Edgar group -->
+  <text x="20" y="152" font-size="11" fill="#cba6f7">▼ edgar</text>
+  <text x="36" y="169" font-size="10" fill="#6c7086">○  financials</text>
+  <text x="36" y="184" font-size="10" fill="#6c7086">○  company_info</text>
+
+  <!-- Collapsed groups -->
+  <text x="20" y="204" font-size="11" fill="#cba6f7">▶ treasury</text>
+  <text x="20" y="222" font-size="11" fill="#cba6f7">▶ bls</text>
+  <text x="20" y="240" font-size="11" fill="#cba6f7">▶ fdic</text>
+  <text x="20" y="258" font-size="11" fill="#cba6f7">▶ worldbank</text>
+
+  <!-- Divider -->
+  <line x1="180" y1="44" x2="180" y2="308" stroke="#313244" stroke-width="1"/>
+
+  <!-- ── Main panel ──────────────────────────────────────────────── -->
+  <rect x="180" y="44" width="568" height="264" fill="#f5f6f8"/>
+
+  <!-- Panel header -->
+  <rect x="180" y="44" width="568" height="32" fill="#ffffff" stroke="#e1e4e8" stroke-width="0.5"/>
+  <text x="196" y="65" font-size="12" font-weight="700" fill="#1a1a2e">yahoo_history</text>
+  <text x="580" y="65" font-size="10" fill="#aaa">OHLCV price history from Yahoo Finance</text>
+
+  <!-- Form area -->
+  <rect x="180" y="76" width="200" height="120" fill="#ffffff" stroke="#e1e4e8" stroke-width="0.5"/>
+
+  <!-- Form fields -->
+  <text x="196" y="98"  font-size="10" fill="#555">symbol</text>
+  <rect x="250" y="85"  width="120" height="18" rx="3" fill="#f0f0f8" stroke="#cba6f7" stroke-width="1"/>
+  <text x="258" y="97"  font-size="10" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">AAPL</text>
+
+  <text x="196" y="120" font-size="10" fill="#555">period</text>
+  <rect x="250" y="107" width="120" height="18" rx="3" fill="#f0f0f8" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="258" y="119" font-size="10" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">1y</text>
+  <text x="358" y="119" font-size="10" fill="#aaa">▾</text>
+
+  <text x="196" y="142" font-size="10" fill="#555">interval</text>
+  <rect x="250" y="129" width="120" height="18" rx="3" fill="#f0f0f8" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="258" y="141" font-size="10" fill="#1a1a2e" font-family="'Menlo','Consolas',monospace">1d</text>
+  <text x="358" y="141" font-size="10" fill="#aaa">▾</text>
+
+  <!-- Run button -->
+  <rect x="196" y="155" width="52" height="22" rx="4" fill="#7c6af7"/>
+  <text x="222" y="170" text-anchor="middle" font-size="11" font-weight="700" fill="white">Run</text>
+
+  <!-- Chart panel -->
+  <rect x="388" y="76" width="360" height="226" rx="4" fill="#ffffff" stroke="#e1e4e8" stroke-width="1"/>
+
+  <!-- Chart title -->
+  <text x="404" y="96" font-size="10" font-weight="700" fill="#7c6af7">Close Price — AAPL  (1d · 1y)</text>
+  <line x1="388" y1="102" x2="748" y2="102" stroke="#e8eaf0" stroke-width="1"/>
+
+  <!-- Y axis labels -->
+  <text x="406" y="122" font-size="8" fill="#aaa">230</text>
+  <text x="406" y="152" font-size="8" fill="#aaa">210</text>
+  <text x="406" y="182" font-size="8" fill="#aaa">190</text>
+  <text x="406" y="212" font-size="8" fill="#aaa">170</text>
+  <text x="406" y="242" font-size="8" fill="#aaa">150</text>
+
+  <!-- Gridlines -->
+  <line x1="422" y1="118" x2="742" y2="118" stroke="#f0f0f4" stroke-width="1"/>
+  <line x1="422" y1="148" x2="742" y2="148" stroke="#f0f0f4" stroke-width="1"/>
+  <line x1="422" y1="178" x2="742" y2="178" stroke="#f0f0f4" stroke-width="1"/>
+  <line x1="422" y1="208" x2="742" y2="208" stroke="#f0f0f4" stroke-width="1"/>
+  <line x1="422" y1="238" x2="742" y2="238" stroke="#f0f0f4" stroke-width="1"/>
+
+  <!-- Chart area fill -->
+  <polygon points="422,238 452,210 480,218 510,185 538,170 565,178 592,155 618,162 645,148 672,155 700,132 728,118 742,122 742,238"
+           fill="rgba(124,106,247,0.08)"/>
+  <!-- Chart line -->
+  <polyline points="422,238 452,210 480,218 510,185 538,170 565,178 592,155 618,162 645,148 672,155 700,132 728,118 742,122"
+            fill="none" stroke="#7c6af7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- X axis labels -->
+  <text x="452" y="254" text-anchor="middle" font-size="8" fill="#aaa">Apr</text>
+  <text x="510" y="254" text-anchor="middle" font-size="8" fill="#aaa">Jun</text>
+  <text x="565" y="254" text-anchor="middle" font-size="8" fill="#aaa">Aug</text>
+  <text x="618" y="254" text-anchor="middle" font-size="8" fill="#aaa">Oct</text>
+  <text x="672" y="254" text-anchor="middle" font-size="8" fill="#aaa">Dec</text>
+  <text x="728" y="254" text-anchor="middle" font-size="8" fill="#aaa">Feb</text>
+
+  <!-- Axis line -->
+  <line x1="422" y1="238" x2="742" y2="238" stroke="#cccccc" stroke-width="1"/>
+
+  <!-- Result table (below form) -->
+  <rect x="180" y="204" width="200" height="104" fill="#ffffff" stroke="#e1e4e8" stroke-width="0.5"/>
+  <rect x="180" y="204" width="200" height="20" fill="#f0eeff"/>
+  <text x="196" y="218" font-size="9" font-weight="700" fill="#7c6af7" font-family="'Menlo','Consolas',monospace">Date        Close    Vol</text>
+  <text x="196" y="234" font-size="9" fill="#333" font-family="'Menlo','Consolas','SF Mono',monospace">2025-02-28  227.84   42M</text>
+  <text x="196" y="248" font-size="9" fill="#333" font-family="'Menlo','Consolas','SF Mono',monospace">2025-02-27  225.10   38M</text>
+  <text x="196" y="262" font-size="9" fill="#555" font-family="'Menlo','Consolas','SF Mono',monospace">2025-02-26  229.03   51M</text>
+  <text x="196" y="276" font-size="9" fill="#555" font-family="'Menlo','Consolas','SF Mono',monospace">2025-02-25  224.72   44M</text>
+  <text x="196" y="290" font-size="9" fill="#aaa">… 248 more rows  [Show all]</text>
+
+  <!-- Bottom status bar -->
+  <rect x="8" y="296" width="740" height="12" rx="0" fill="#181825"/>
+  <rect x="8" y="298" width="740" height="10" rx="0" fill="#181825"/>
+  <text x="20"  y="306" font-size="8" fill="#6c7086">● ready</text>
+  <text x="560" y="306" font-size="8" fill="#6c7086">L1 cache  ·  10 tools registered</text>
+
+</svg>

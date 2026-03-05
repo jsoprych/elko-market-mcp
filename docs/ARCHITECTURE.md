@@ -21,24 +21,7 @@ elko is a Go binary that exposes 10 financial data tools through three simultane
 
 ## Three-Interface Design
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Three Interfaces                            │
-│                                                                 │
-│   ┌──────────┐        ┌──────────┐        ┌──────────┐        │
-│   │   MCP    │        │   REST   │        │   CLI    │        │
-│   │  stdio   │        │   API    │        │  call    │        │
-│   │ (AI use) │        │(+web UI) │        │(scripts) │        │
-│   └────┬─────┘        └────┬─────┘        └────┬─────┘        │
-│        │                   │                   │               │
-│        └───────────────────┼───────────────────┘               │
-│                            │                                    │
-│                    ┌───────▼──────┐                            │
-│                    │   Registry   │   One shared catalogue      │
-│                    │  (10 tools)  │   thread-safe, RWMutex      │
-│                    └──────────────┘                            │
-└─────────────────────────────────────────────────────────────────┘
-```
+![Three-interface architecture](img/architecture.svg)
 
 All three interfaces share a single `*registry.Registry` instance built at startup. This means:
 - Adding a tool makes it available everywhere simultaneously
@@ -66,45 +49,7 @@ main.go
 
 Each tool invocation follows this path:
 
-```
-Caller (MCP/REST/CLI)
-        │
-        ▼
-   Registry.Call(name, args)
-        │
-        ▼
-   ExtractorFunc(ctx, args, channel)          ← source-specific Go code
-        │
-        ├── parse args (json.Unmarshal)
-        ├── build URL
-        │
-        ▼
-   channel.Fetch(ctx, url)                    ← centralized in runner.go
-        │
-        ├── cache.Get(key)  ──hit──► return cached bytes
-        │        │
-        │       miss
-        │        │
-        ▼
-   http.Client.Get(url)                       ← single shared HTTP client
-        │
-        ▼
-   cache.Set(key, body, TTL)
-        │
-        ▼
-   return []byte to ExtractorFunc
-        │
-        ▼
-   json.Unmarshal into source struct
-   filter / transform
-   fmt.Fprintf → formatted string
-        │
-        ▼
-   return (string, error) to Registry
-        │
-        ▼
-   caller receives formatted text
-```
+![Channel call pipeline](img/pipeline.svg)
 
 **What is centralized (runner.go):**
 - Single `*http.Client` for all sources
@@ -371,37 +316,7 @@ web/
 
 ### Data flow in the browser
 
-```
-page load
-  │
-  ├── fetch /v1/catalogue
-  │     └── build sidebar tree (source → category → tool)
-  │
-  ├── read URL params (?tool=&arg=...)
-  │     ├── select tool in sidebar
-  │     ├── populate form fields
-  │     └── if all required args present → auto-run
-  │
-user selects tool
-  │
-  ├── form-builder builds form from spec.schema
-  │
-user submits form
-  │
-  ├── runner.js POST /v1/call/<tool> {args}
-  ├── push result to history (max 50)
-  │
-  ├── renderer.js renders result:
-  │     ├── csv → HTML table (>100 rows collapse)
-  │     ├── table → HTML table
-  │     ├── kv → definition list
-  │     ├── sections → grouped key-value
-  │     └── fallback → <pre>
-  │
-  ├── if spec.chart → chart.js renders SVG below table
-  │
-  └── URL updated: ?tool=name&arg1=val1&arg2=val2
-```
+![Browser data flow](img/webflow.svg)
 
 ### SVG chart rendering
 
@@ -417,57 +332,7 @@ user submits form
 
 Full end-to-end flow for a `yahoo_history` tool call:
 
-```
-User (Claude/browser/curl/terminal)
-  │
-  │  "Get AAPL 1-year daily history"
-  ▼
-Interface Layer
-  ├── MCP:  {"method":"tools/call","params":{"name":"yahoo_history","arguments":{"symbol":"AAPL","period":"1y"}}}
-  ├── REST: POST /v1/call/yahoo_history  {"symbol":"AAPL","period":"1y"}
-  └── CLI:  ./elko call yahoo_history symbol=AAPL period=1y
-  │
-  ▼
-registry.Call("yahoo_history", {"symbol":"AAPL","period":"1y"})
-  │
-  ▼
-ExtractorFunc: extractYahooOHLCV(ctx, args, ch)
-  │
-  ├── parse args → symbol="AAPL", period="1y", interval="1d"
-  ├── build URL: https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=1y&interval=1d
-  │
-  ▼
-ch.Fetch(ctx, url)  [runner.makeFetch closure]
-  │
-  ├── key = "yahoo:https://query1.finance.yahoo.com/..."
-  ├── L1 cache miss
-  ├── L2 cache miss (or not configured)
-  │
-  ▼
-http.Client.Get(url)
-  Headers: User-Agent: Mozilla/5.0 (compatible; elko-market-mcp/1.0)
-  │
-  ▼
-Yahoo Finance API → 200 OK, JSON body (OHLCV arrays)
-  │
-  ▼
-cache.Set(key, body, TTL=1h)
-  │
-  ▼
-extractYahooOHLCV receives []byte
-  ├── json.Unmarshal into yahooChartResponse struct
-  ├── filter NaN values, zip timestamps with OHLCV arrays
-  ├── fmt.Fprintf CSV: Timestamp,Date,Open,High,Low,Close,AdjClose,Volume
-  │
-  ▼
-return (csvString, nil) to registry
-  │
-  ▼
-Interface returns formatted text to caller
-  ├── MCP:  content[0].text = csvString
-  ├── REST: {"result": csvString}
-  └── CLI:  print to stdout
-```
+![End-to-end data flow](img/dataflow.svg)
 
 ---
 

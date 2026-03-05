@@ -1,0 +1,87 @@
+<svg viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="700" height="520" fill="white"/>
+
+  <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Web Dashboard — Browser Data Flow</text>
+
+  <defs>
+    <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#999"/>
+    </marker>
+  </defs>
+
+  <!-- ── PAGE LOAD ──────────────────────────────────────────────── -->
+  <rect x="200" y="36" width="300" height="32" rx="16" fill="#7c6af7"/>
+  <text x="350" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="white">Page Load</text>
+
+  <line x1="350" y1="68" x2="350" y2="84" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── Fetch catalogue ─────────────────────────────────────────── -->
+  <rect x="160" y="84" width="380" height="44" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="350" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#7c6af7">GET /v1/catalogue</text>
+  <text x="350" y="120" text-anchor="middle" font-size="10" fill="#555">build sidebar tree  (source → category → tool)</text>
+
+  <line x1="350" y1="128" x2="350" y2="148" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── URL params ──────────────────────────────────────────────── -->
+  <rect x="160" y="148" width="380" height="52" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="350" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a2e">Read URL params  ?tool=&amp;arg=…</text>
+  <text x="350" y="182" text-anchor="middle" font-size="10" fill="#555">select tool in sidebar · populate fields</text>
+  <text x="350" y="194" text-anchor="middle" font-size="9" fill="#888">if all required args present → auto-run</text>
+
+  <line x1="350" y1="200" x2="350" y2="220" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── User selects tool ──────────────────────────────────────── -->
+  <rect x="160" y="220" width="380" height="36" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="350" y="239" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a2e">User selects tool in sidebar</text>
+  <text x="350" y="251" text-anchor="middle" font-size="10" fill="#555">form-builder renders inputs from JSON Schema</text>
+
+  <line x1="350" y1="256" x2="350" y2="276" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── Submit ─────────────────────────────────────────────────── -->
+  <rect x="160" y="276" width="380" height="44" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="350" y="297" text-anchor="middle" font-size="11" font-weight="700" fill="#7c6af7">User submits form</text>
+  <text x="350" y="312" text-anchor="middle" font-size="10" fill="#555">POST /v1/call/&lt;tool&gt;  ·  push to history (max 50)</text>
+
+  <line x1="350" y1="320" x2="350" y2="340" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── Renderer ────────────────────────────────────────────────── -->
+  <rect x="120" y="340" width="460" height="80" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="350" y="360" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a2e">renderer.js  —  format result</text>
+
+  <!-- Format badges -->
+  <rect x="136" y="368" width="60" height="20" rx="3" fill="#f0eeff" stroke="#7c6af7" stroke-width="1"/>
+  <text x="166" y="381" text-anchor="middle" font-size="9" fill="#7c6af7">csv</text>
+  <text x="166" y="392" text-anchor="middle" font-size="8" fill="#888">HTML table</text>
+
+  <rect x="204" y="368" width="60" height="20" rx="3" fill="#f0eeff" stroke="#7c6af7" stroke-width="1"/>
+  <text x="234" y="381" text-anchor="middle" font-size="9" fill="#7c6af7">table</text>
+  <text x="234" y="392" text-anchor="middle" font-size="8" fill="#888">HTML table</text>
+
+  <rect x="272" y="368" width="60" height="20" rx="3" fill="#f0eeff" stroke="#7c6af7" stroke-width="1"/>
+  <text x="302" y="381" text-anchor="middle" font-size="9" fill="#7c6af7">kv</text>
+  <text x="302" y="392" text-anchor="middle" font-size="8" fill="#888">def list</text>
+
+  <rect x="340" y="368" width="60" height="20" rx="3" fill="#f0eeff" stroke="#7c6af7" stroke-width="1"/>
+  <text x="370" y="381" text-anchor="middle" font-size="9" fill="#7c6af7">sections</text>
+  <text x="370" y="392" text-anchor="middle" font-size="8" fill="#888">grouped kv</text>
+
+  <rect x="408" y="368" width="60" height="20" rx="3" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1"/>
+  <text x="438" y="381" text-anchor="middle" font-size="9" fill="#888">fallback</text>
+  <text x="438" y="392" text-anchor="middle" font-size="8" fill="#888">&lt;pre&gt;</text>
+
+  <line x1="350" y1="420" x2="350" y2="440" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── Chart (conditional) ────────────────────────────────────── -->
+  <rect x="160" y="440" width="380" height="36" rx="6" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="350" y="460" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a2e">if spec.chart  →  chart.js renders SVG</text>
+  <text x="350" y="472" text-anchor="middle" font-size="9" fill="#888">line or bar · auto-scaled axes · no external deps</text>
+
+  <line x1="350" y1="476" x2="350" y2="496" stroke="#999" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+  <!-- ── URL state ───────────────────────────────────────────────── -->
+  <rect x="160" y="496" width="380" height="16" rx="6" fill="#1e1e2e" stroke="#45475a" stroke-width="1"/>
+  <text x="350" y="508" text-anchor="middle" font-size="9" fill="#a6adc8">URL updated  ?tool=name&amp;arg1=val1&amp;arg2=val2  (bookmarkable)</text>
+
+</svg>

@@ -1,0 +1,76 @@
+<svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <rect width="700" height="280" fill="white"/>
+
+  <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Channel Registration Flow</text>
+
+  <defs>
+    <marker id="arrr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#999"/>
+    </marker>
+    <marker id="arrr-rev" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto">
+      <path d="M8,0 L8,6 L0,3 z" fill="#7c6af7"/>
+    </marker>
+  </defs>
+
+  <!-- ── LEFT COLUMN: inputs ─────────────────────────────────────── -->
+
+  <!-- JSON spec -->
+  <rect x="10" y="44" width="155" height="40" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="87" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">JSON spec file</text>
+  <text x="87" y="76" text-anchor="middle" font-size="9" fill="#888" font-family="'Menlo','Consolas',monospace">channels/**/*.json</text>
+
+  <!-- Go extractor -->
+  <rect x="10" y="116" width="155" height="40" rx="5" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+  <text x="87" y="134" text-anchor="middle" font-size="10" font-weight="700" fill="#7c6af7">Go extractor</text>
+  <text x="87" y="148" text-anchor="middle" font-size="9" fill="#888" font-family="'Menlo','Consolas',monospace">extract/*.go</text>
+
+  <!-- ── MIDDLE COLUMN: runner + registry ───────────────────────── -->
+
+  <!-- runner.Register -->
+  <rect x="250" y="72" width="200" height="52" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="350" y="93" text-anchor="middle" font-size="11" font-weight="700" fill="#7c6af7">runner.Register</text>
+  <text x="350" y="108" text-anchor="middle" font-size="10" fill="#555">Channel{Spec, Fetch closure}</text>
+  <text x="350" y="119" text-anchor="middle" font-size="9" fill="#888">HTTP · cache · headers</text>
+
+  <!-- registry.Register -->
+  <rect x="250" y="160" width="200" height="40" rx="6" fill="#f0eeff" stroke="#7c6af7" stroke-width="1.5"/>
+  <text x="350" y="179" text-anchor="middle" font-size="11" font-weight="700" fill="#7c6af7">registry.Register</text>
+  <text x="350" y="193" text-anchor="middle" font-size="10" fill="#555">Tool{Name, Schema, Handler}</text>
+
+  <!-- Arrows: spec + extractor → runner -->
+  <line x1="165" y1="64"  x2="248" y2="90"  stroke="#999" stroke-width="1.2" marker-end="url(#arrr)"/>
+  <line x1="165" y1="136" x2="248" y2="112" stroke="#999" stroke-width="1.2" marker-end="url(#arrr)"/>
+
+  <!-- runner → registry -->
+  <line x1="350" y1="124" x2="350" y2="158" stroke="#999" stroke-width="1.5" marker-end="url(#arrr)"/>
+
+  <!-- ── RIGHT COLUMN: output interfaces ───────────────────────── -->
+
+  <!-- MCP -->
+  <rect x="535" y="44" width="150" height="36" rx="5" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="610" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#cba6f7">MCP stdio</text>
+  <text x="610" y="74" text-anchor="middle" font-size="9" fill="#a6adc8">tools/list · tools/call</text>
+
+  <!-- REST -->
+  <rect x="535" y="112" width="150" height="36" rx="5" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="610" y="130" text-anchor="middle" font-size="11" font-weight="700" fill="#cba6f7">REST API</text>
+  <text x="610" y="142" text-anchor="middle" font-size="9" fill="#a6adc8">/v1/catalogue · /v1/call</text>
+
+  <!-- CLI -->
+  <rect x="535" y="180" width="150" height="36" rx="5" fill="#1e1e2e" stroke="#45475a" stroke-width="1.5"/>
+  <text x="610" y="198" text-anchor="middle" font-size="11" font-weight="700" fill="#cba6f7">CLI</text>
+  <text x="610" y="210" text-anchor="middle" font-size="9" fill="#a6adc8">catalogue · call</text>
+
+  <!-- registry → MCP / REST / CLI fan-out -->
+  <line x1="452" y1="180" x2="533" y2="62"  stroke="#7c6af7" stroke-width="1.2" marker-end="url(#arrr)"/>
+  <line x1="452" y1="180" x2="533" y2="130" stroke="#7c6af7" stroke-width="1.2" marker-end="url(#arrr)"/>
+  <line x1="452" y1="180" x2="533" y2="198" stroke="#7c6af7" stroke-width="1.2" marker-end="url(#arrr)"/>
+
+  <!-- ── Footer note ─────────────────────────────────────────────── -->
+  <text x="350" y="254" text-anchor="middle" font-size="10" fill="#aaa">
+    Adding one JSON spec + one Go extractor makes a tool available everywhere simultaneously
+  </text>
+
+</svg>

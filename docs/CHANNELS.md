@@ -35,17 +35,7 @@ When elko starts, it:
 
 The `Fetch` closure handles everything transport-related: cache lookup, HTTP GET, header injection, cache write. The extractor only has to call `ch.Fetch(ctx, url)` and parse the result.
 
-```
-JSON spec      ──────────────────────────────────► Spec struct (name, schema, request config)
-                                                          │
-Go extractor  ──► registered as ExtractorFunc            │
-                                                          │
-runner.Register ─────────────────────────────────► Channel{Spec, Fetch closure}
-                                                          │
-registry.Register ───────────────────────────────► Tool{Name, Schema, Handler}
-                                                          │
-MCP / REST / CLI ◄───────────────────────────────── tool invocation
-```
+![Channel registration flow](img/channel-reg.svg)
 
 ---
 
