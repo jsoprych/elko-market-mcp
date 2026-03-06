@@ -1,5 +1,10 @@
 # ── Builder ───────────────────────────────────────────────────────────────────
+# TARGETOS/TARGETARCH are injected by buildx for multi-arch builds.
+# Defaults allow plain `docker build` (no buildx) to work on amd64.
 FROM golang:1.25-alpine AS builder
+
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 
 WORKDIR /build
 
@@ -9,7 +14,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /elko ./cmd/elko
 
 # ── Final image ───────────────────────────────────────────────────────────────
@@ -20,6 +25,10 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Binary.
 COPY --from=builder /elko /elko
+
+# Web dashboard assets (served from /web at runtime; binary uses "./web"
+# which resolves to /web when the process working directory is /).
+COPY --from=builder /build/web /web
 
 # Data volume for SQLite persistence.
 VOLUME ["/data"]

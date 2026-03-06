@@ -1,0 +1,30 @@
+# docker-compose.run.yml — pull and run the published image (no build required).
+#
+# Usage:
+#   export SEC_USER_AGENT="MyApp me@example.com"
+#   docker compose -f docker-compose.run.yml up -d
+#
+# To use a specific version instead of latest:
+#   IMAGE_TAG=v0.1.1 docker compose -f docker-compose.run.yml up -d
+
+services:
+  elko:
+    image: ghcr.io/jsoprych/elko-market-mcp:${IMAGE_TAG:-latest}
+    ports:
+      - "8080:8080"
+    volumes:
+      - elko-data:/data
+    environment:
+      # Required by SEC policy for EDGAR tools.
+      # Format: "App Name contact@email.com"
+      - SEC_USER_AGENT=${SEC_USER_AGENT:-elko-market-mcp contact@localhost}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/elko", "catalogue", "--sources", "yahoo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  elko-data:
