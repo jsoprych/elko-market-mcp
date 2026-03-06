@@ -157,29 +157,27 @@ worldbank_indicator   GDP, inflation, trade, debt, population — any country
 
 ### Docker
 
+**Pull published image (recommended):**
+
 ```bash
-docker compose up
+# Published to GHCR and Docker Hub — linux/amd64 + linux/arm64
+export SEC_USER_AGENT="MyApp me@example.com"
+docker compose -f docker-compose.run.yml up -d
 # Dashboard at http://localhost:8080
 ```
 
-```yaml
-# docker-compose.yml excerpt
-services:
-  elko:
-    build: .
-    ports: ["8080:8080"]
-    volumes: ["elko-data:/data"]
-    environment:
-      SEC_USER_AGENT: "MyApp me@example.com"
-```
-
-**No `docker compose` plugin?**
+**Build from source:**
 
 ```bash
-docker build -t elko-market-mcp . && \
+docker compose up   # uses docker-compose.yml (build: .)
+```
+
+**Plain `docker run` (no compose plugin):**
+
+```bash
 docker run -d --name elko -p 8080:8080 \
   -e SEC_USER_AGENT="MyApp me@example.com" \
-  elko-market-mcp
+  ghcr.io/jsoprych/elko-market-mcp:latest
 ```
 
 ---

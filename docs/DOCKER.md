@@ -2,58 +2,85 @@
 
 ![Docker build and deployment](img/docker-build.svg)
 
-elko ships with a multi-stage Dockerfile and a docker-compose configuration for easy containerized deployment.
+elko ships as a published multi-arch Docker image (amd64 + arm64) on GHCR and Docker Hub, plus a multi-stage Dockerfile for building from source.
 
 ---
 
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Build the Image](#build-the-image)
-3. [Configuration](#configuration)
-4. [Persistent Cache](#persistent-cache)
-5. [docker-compose Reference](#docker-compose-reference)
-6. [Dockerfile Details](#dockerfile-details)
-7. [Health Check](#health-check)
-8. [Running Without Compose](#running-without-compose)
+2. [Pull the Published Image](#pull-the-published-image)
+3. [Build the Image](#build-the-image)
+4. [Configuration](#configuration)
+5. [Persistent Cache](#persistent-cache)
+6. [docker-compose Reference](#docker-compose-reference)
+7. [Dockerfile Details](#dockerfile-details)
+8. [Health Check](#health-check)
+9. [Running Without Compose](#running-without-compose)
 
 ---
 
 ## Quick Start
 
-### With docker compose (recommended)
+### Pull and run the published image (fastest)
+
+```bash
+# GHCR
+docker pull ghcr.io/jsoprych/elko-market-mcp:latest
+
+# Docker Hub mirror
+docker pull jsoprych/elko-market-mcp:latest
+
+# Run
+docker run -d --name elko \
+  -p 8080:8080 \
+  -e SEC_USER_AGENT="MyApp me@example.com" \
+  ghcr.io/jsoprych/elko-market-mcp:latest
+
+# Open the dashboard
+open http://localhost:8080
+curl localhost:8080/health
+```
+
+### With docker-compose.run.yml (published image + persistent cache)
+
+```bash
+export SEC_USER_AGENT="MyApp me@example.com"
+docker compose -f docker-compose.run.yml up -d
+open http://localhost:8080
+```
+
+### Build from source
 
 ```bash
 # 1. Set your SEC contact (required for EDGAR tools)
 export SEC_USER_AGENT="MyApp me@example.com"
 
-# 2. Start the service
+# 2. Build and start
 docker compose up
 
 # 3. Open the dashboard
 open http://localhost:8080
-
-# 4. Or call a tool directly
-curl -s -XPOST localhost:8080/v1/call/yahoo_quote \
-  -H 'Content-Type: application/json' \
-  -d '{"symbol":"AAPL"}'
 ```
 
 > **No `docker compose`?** Install the plugin: `sudo apt install docker-compose-plugin`
 > or use the plain `docker` one-liners in [Running Without Compose](#running-without-compose) below.
 
-### One-liner (no compose plugin needed)
+---
+
+## Pull the Published Image
+
+Images are published to two registries on every `v*.*.*` tag, for `linux/amd64` and `linux/arm64`:
+
+| Registry | Image |
+|----------|-------|
+| GHCR | `ghcr.io/jsoprych/elko-market-mcp:latest` |
+| Docker Hub | `jsoprych/elko-market-mcp:latest` |
+
+Pin a specific version:
 
 ```bash
-docker build -t elko-market-mcp . && \
-docker run -d --name elko \
-  -p 8080:8080 \
-  -e SEC_USER_AGENT="MyApp me@example.com" \
-  elko-market-mcp
-
-# Verify
-curl localhost:8080/health
-# → {"status":"ok","tools":10,"version":"0.1.0"}
+docker pull ghcr.io/jsoprych/elko-market-mcp:v0.1.1
 ```
 
 ---
@@ -81,8 +108,10 @@ The Dockerfile uses a multi-stage build:
 
 Binary is compiled with:
 ```
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /elko ./cmd/elko
+CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /elko ./cmd/elko
 ```
+
+`TARGETOS` and `TARGETARCH` default to `linux/amd64` for plain `docker build`; BuildKit sets them automatically for multi-arch builds.
 
 The `-s -w` flags strip debug info and DWARF tables for a smaller binary.
 
@@ -203,26 +232,35 @@ docker compose run --rm elko call yahoo_quote symbol=AAPL
 ```dockerfile
 # Stage 1: Build
 FROM golang:1.25-alpine AS builder
+
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /elko ./cmd/elko
 
 # Stage 2: Runtime
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /elko /elko
+COPY --from=builder /build/web /web
+VOLUME ["/data"]
+EXPOSE 8080
 ENTRYPOINT ["/elko"]
-CMD ["serve", "--port", "8080"]
+CMD ["serve", "--db", "/data/elko.db", "--port", "8080"]
 ```
 
 **Key points:**
 - `scratch` base = zero OS footprint, no shell, no package manager
 - CA certificates copied from builder for HTTPS calls to external APIs
 - `CGO_ENABLED=0` enables static linking (required for scratch base)
-- Final image size: ~11 MB (binary + CA certs only)
+- `COPY /build/web /web` — dashboard assets served from disk, not embedded
+- `ARG TARGETOS/TARGETARCH` — BuildKit sets these for multi-arch; defaults to `linux/amd64`
+- Final image size: ~11 MB (binary + web assets + CA certs)
 
 ---
 
