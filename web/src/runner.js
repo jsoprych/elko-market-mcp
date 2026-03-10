@@ -29,9 +29,8 @@ export async function runTool(toolName, args, resultFormat, container) {
     container.innerHTML = '';
 
     if (!res.ok) {
-      const errEl = mk('div', 'elko-result-status elko-result-status--error');
-      errEl.textContent = data.error || `HTTP ${res.status}`;
-      container.appendChild(errEl);
+      const msg = data.error || `HTTP ${res.status}`;
+      container.appendChild(isAuthError(msg) ? authErrorEl(msg) : errorEl(msg));
       return null;
     }
 
@@ -44,11 +43,59 @@ export async function runTool(toolName, args, resultFormat, container) {
 
   } catch (err) {
     container.innerHTML = '';
-    const errEl = mk('div', 'elko-result-status elko-result-status--error');
-    errEl.textContent = String(err);
-    container.appendChild(errEl);
+    container.appendChild(errorEl(String(err)));
     return null;
   }
+}
+
+/** Returns true if the error message looks like a missing/bad API key. */
+function isAuthError(msg) {
+  return /api[_ ]key|not set|unauthorized|forbidden|invalid.*(key|token)|rate.?limit/i.test(msg);
+}
+
+/** Renders a plain error element. */
+function errorEl(msg) {
+  const el = mk('div', 'elko-result-status elko-result-status--error');
+  el.textContent = msg;
+  return el;
+}
+
+/**
+ * Renders an auth-specific error with the env var name highlighted
+ * and a link extracted from the error text if present.
+ */
+function authErrorEl(msg) {
+  const el = mk('div', 'elko-result-status elko-result-status--auth');
+
+  // Extract env var name (ALL_CAPS_WITH_UNDERSCORES).
+  const envMatch = msg.match(/\b([A-Z][A-Z0-9_]{3,})\b/);
+  const urlMatch  = msg.match(/https?:\/\/\S+/);
+
+  const icon = document.createElement('span');
+  icon.textContent = '⚠ ';
+
+  el.appendChild(icon);
+
+  if (envMatch) {
+    el.appendChild(document.createTextNode('API key required: '));
+    const code = document.createElement('code');
+    code.textContent = envMatch[1];
+    el.appendChild(code);
+    el.appendChild(document.createTextNode(' is not set. '));
+  } else {
+    el.appendChild(document.createTextNode(msg + ' '));
+  }
+
+  if (urlMatch) {
+    const a = document.createElement('a');
+    a.href = urlMatch[0];
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = 'Get a free key →';
+    el.appendChild(a);
+  }
+
+  return el;
 }
 
 /** @param {string} tag @param {string} cls @returns {HTMLElement} */

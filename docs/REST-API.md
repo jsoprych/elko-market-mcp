@@ -25,6 +25,8 @@ Default port: `8080`
    - [GET /health](#get-health)
    - [GET /v1/catalogue](#get-v1catalogue)
    - [GET /v1/sources](#get-v1sources)
+   - [GET /v1/keys](#get-v1keys)
+   - [GET /v1/logs](#get-v1logs)
    - [POST /v1/call/{tool}](#post-v1calltool)
 7. [Examples](#examples)
 
@@ -38,7 +40,10 @@ Default port: `8080`
 | `GET` | `/health` | Server health check |
 | `GET` | `/v1/catalogue` | All tools with schemas and metadata |
 | `GET` | `/v1/sources` | Available source tags |
+| `GET` | `/v1/keys` | API key status for active sources |
+| `GET` | `/v1/logs` | Call log history (requires `--db`) |
 | `POST` | `/v1/call/{tool}` | Execute a named tool |
+| `POST` | `/mcp` | MCP JSON-RPC 2.0 endpoint |
 
 ---
 
@@ -231,6 +236,84 @@ If started with `--sources yahoo,edgar`, only those two sources are returned.
 
 ---
 
+### GET /v1/keys
+
+Returns API key status for every env var used by active sources. The dashboard uses this to show missing-key banners on load.
+
+**Request:**
+```bash
+curl http://localhost:8080/v1/keys
+```
+
+**Response:**
+```json
+{
+  "keys": [
+    {
+      "source":   "fred",
+      "env":      "FRED_API_KEY",
+      "required": true,
+      "set":      false,
+      "help_url": "https://fred.stlouisfed.org/docs/api/api_key.html",
+      "note":     "Free registration — required for all FRED requests"
+    },
+    {
+      "source":   "edgar",
+      "env":      "SEC_USER_AGENT",
+      "required": false,
+      "set":      true,
+      "help_url": "https://www.sec.gov/developer",
+      "note":     "Recommended: format \"Company Name email@domain.com\""
+    }
+  ],
+  "missing_required": ["FRED_API_KEY"]
+}
+```
+
+Only sources included in the active registry are reported. If `missing_required` is non-empty, the dashboard renders a yellow warning banner for each missing key.
+
+---
+
+### GET /v1/logs
+
+Returns the recent tool call history. Only available when the server is started with `--db <path>`.
+
+Returns `404` when `--db` is not active (the Logs tab in the dashboard only appears when this endpoint returns `200`).
+
+**Query parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `limit` | Max entries to return (default: all) |
+| `tool` | Filter by tool name |
+| `error=true` | Return only failed calls |
+
+**Request:**
+```bash
+curl "http://localhost:8080/v1/logs?limit=20"
+curl "http://localhost:8080/v1/logs?tool=yahoo_quote&limit=10"
+curl "http://localhost:8080/v1/logs?error=true"
+```
+
+**Response:**
+```json
+{
+  "entries": [
+    {
+      "id":        42,
+      "ts":        "2025-01-15T14:32:01Z",
+      "tool":      "yahoo_quote",
+      "args":      "{\"symbol\":\"AAPL\"}",
+      "duration_ms": 312,
+      "error":     ""
+    }
+  ],
+  "count": 1
+}
+```
+
+---
+
 ### POST /v1/call/{tool}
 
 Execute a named tool with JSON arguments.
@@ -298,6 +381,24 @@ curl -s -XPOST $BASE/v1/call/fdic_bank_financials \
 curl -s -XPOST $BASE/v1/call/worldbank_indicator \
   -H 'Content-Type: application/json' \
   -d '{"country":"US","indicator":"NY.GDP.MKTP.CD","from_year":2015}'
+
+# FRED series (requires FRED_API_KEY)
+curl -s -XPOST $BASE/v1/call/fred_series \
+  -H 'Content-Type: application/json' \
+  -d '{"series_id":"FEDFUNDS","start_date":"2023-01-01"}'
+
+# FRED keyword search
+curl -s -XPOST $BASE/v1/call/fred_search \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"unemployment rate","limit":5}'
+
+# EDGAR insider trades (Form 4)
+curl -s -XPOST $BASE/v1/call/edgar_insider_trades \
+  -H 'Content-Type: application/json' \
+  -d '{"symbol":"NVDA","months":6}'
+
+# Check API key status
+curl -s $BASE/v1/keys | jq '.missing_required'
 ```
 
 ### Use with jq

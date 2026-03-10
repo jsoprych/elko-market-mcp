@@ -57,7 +57,9 @@ async function init() {
 
   function syncThemeBtn() {
     const dark = document.body.dataset.theme === 'dark';
-    themeBtn.textContent = dark ? '☀' : '☾';
+    themeBtn.innerHTML = dark
+      ? '<span style="font-size:13px">☀</span> Light'
+      : '<span style="font-size:13px">☾</span> Dark';
     themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
   }
   syncThemeBtn();
@@ -151,6 +153,21 @@ async function init() {
       for (const tool of tools)
         toolMap.set(tool.name, tool);
 
+  // ── Key notification banners ───────────────────────────────────────────────────
+  try {
+    const keysRes = await fetch('/v1/keys');
+    if (keysRes.ok) {
+      const keysData = await keysRes.json();
+      const missing = (keysData.keys ?? []).filter(k => k.required && !k.set);
+      if (missing.length > 0) {
+        // Insert in reverse so first key ends up on top
+        for (let i = missing.length - 1; i >= 0; i--) {
+          toolsPane.insertBefore(buildKeyBanner(missing[i]), toolsPane.firstChild);
+        }
+      }
+    }
+  } catch { /* ignore — server may not support /v1/keys */ }
+
   // ── Toolbar ────────────────────────────────────────────────────────────────────
 
   function renderToolbar(rawText, resultFormat, toolName) {
@@ -207,7 +224,7 @@ async function init() {
       fmt.addEventListener('change', () => { exportFmt = fmt.value; });
 
       const dl = mk('button', 'elko-toolbar-btn');
-      dl.textContent = '↓'; dl.title = 'Download';
+      dl.textContent = 'Download'; dl.title = 'Download result to file';
       dl.addEventListener('click', () => {
         triggerDownload(exportData(rawText, resultFormat, exportFmt),
           exportFilename(toolName || 'result', exportFmt));
@@ -405,6 +422,40 @@ function mk(tag, cls) {
   const e = document.createElement(tag);
   e.className = cls;
   return e;
+}
+
+/** Builds a dismissible warning banner for a missing required API key. */
+function buildKeyBanner(key) {
+  const banner  = mk('div', 'elko-key-banner');
+  const icon    = mk('span', 'elko-key-banner__icon');
+  icon.textContent = '⚠';
+
+  const body = mk('div', 'elko-key-banner__body');
+  const code = document.createElement('code');
+  code.textContent = key.env;
+  body.appendChild(document.createTextNode('API key required: '));
+  body.appendChild(code);
+  body.appendChild(document.createTextNode(` is not set. ${key.note}. `));
+
+  if (key.help_url) {
+    const a = document.createElement('a');
+    a.href    = key.help_url;
+    a.target  = '_blank';
+    a.rel     = 'noopener';
+    a.textContent = 'Get a free key →';
+    body.appendChild(a);
+  }
+
+  const dismiss = mk('button', 'elko-key-banner__dismiss');
+  dismiss.type        = 'button';
+  dismiss.textContent = '✕';
+  dismiss.title       = 'Dismiss';
+  dismiss.addEventListener('click', () => banner.remove());
+
+  banner.appendChild(icon);
+  banner.appendChild(body);
+  banner.appendChild(dismiss);
+  return banner;
 }
 
 init().catch(err => {

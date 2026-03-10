@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -58,6 +59,7 @@ func (s *Server) Handler() http.Handler {
 	r.Get("/v1/catalogue", s.handleCatalogue)
 	r.Post("/v1/call/{tool}", s.handleCall)
 	r.Get("/v1/sources", s.handleSources)
+	r.Get("/v1/keys", s.handleKeys)
 
 	if s.mcpHandler != nil {
 		r.Post("/mcp", s.mcpHandler.ServeHTTP)
@@ -205,6 +207,68 @@ func (s *Server) handleLogs(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"entries": entries,
 		"count":   len(entries),
+	})
+}
+
+// knownKeys lists every env var elko reads, the source it belongs to,
+// whether it is required (tool will error without it) or just recommended,
+// and a registration URL shown to the user.
+var knownKeys = []struct {
+	source   string
+	env      string
+	required bool
+	helpURL  string
+	note     string
+}{
+	{"fred",  "FRED_API_KEY",   true,  "https://fred.stlouisfed.org/docs/api/api_key.html", "Free registration — required for all FRED requests"},
+	{"edgar", "SEC_USER_AGENT", false, "https://www.sec.gov/developer",                     "Recommended: format \"Company Name email@domain.com\""},
+	{"bls",   "BLS_API_KEY",    false, "https://data.bls.gov/registrationEngine/",           "Optional — lifts daily request cap from 25 to 500"},
+}
+
+func (s *Server) handleKeys(w http.ResponseWriter, r *http.Request) {
+	// Only report keys for sources that are actually registered.
+	activeSources := make(map[string]bool)
+	for _, src := range s.reg.Sources() {
+		activeSources[src] = true
+	}
+
+	type keyEntry struct {
+		Source   string `json:"source"`
+		Env      string `json:"env"`
+		Required bool   `json:"required"`
+		Set      bool   `json:"set"`
+		HelpURL  string `json:"help_url"`
+		Note     string `json:"note"`
+	}
+
+	var entries []keyEntry
+	var missingRequired []string
+	for _, k := range knownKeys {
+		if !activeSources[k.source] {
+			continue
+		}
+		set := os.Getenv(k.env) != ""
+		entries = append(entries, keyEntry{
+			Source:   k.source,
+			Env:      k.env,
+			Required: k.required,
+			Set:      set,
+			HelpURL:  k.helpURL,
+			Note:     k.note,
+		})
+		if k.required && !set {
+			missingRequired = append(missingRequired, k.env)
+		}
+	}
+	if entries == nil {
+		entries = []keyEntry{}
+	}
+	if missingRequired == nil {
+		missingRequired = []string{}
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"keys":             entries,
+		"missing_required": missingRequired,
 	})
 }
 
