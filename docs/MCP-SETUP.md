@@ -67,9 +67,10 @@ This repo includes a `.mcp.json` template. Update the binary path:
     "elko-market": {
       "type": "stdio",
       "command": "/absolute/path/to/elko",
-      "args": ["mcp"],
+      "args": ["mcp", "--db", "/home/user/.elko.db"],
       "env": {
-        "SEC_USER_AGENT": "MyApp me@example.com"
+        "SEC_USER_AGENT": "MyApp me@example.com",
+        "FRED_API_KEY": "your_key_here"
       }
     }
   }
@@ -77,6 +78,13 @@ This repo includes a `.mcp.json` template. Update the binary path:
 ```
 
 Replace `/absolute/path/to/elko` with the actual binary path.
+
+> **Include `--db` to enable call logging.** Without it, `elko mcp` spawns with no database and all calls are unlogged — the Logs tab in the dashboard will be empty. The `--db` path can be anything writable; `~/.elko.db` is a good default.
+>
+> **Alternative: use the HTTP transport instead.** If `elko serve --db ~/.elko.db` is already running, connect to it directly — logging is automatic and you avoid spawning a second process:
+> ```bash
+> curl -s localhost:8080/mcp.json > .mcp.json
+> ```
 
 ### Global (`~/.mcp.json`)
 
@@ -107,7 +115,7 @@ Claude Desktop reads its MCP configuration from a platform-specific config file.
   "mcpServers": {
     "elko-market": {
       "command": "/absolute/path/to/elko",
-      "args": ["mcp"],
+      "args": ["mcp", "--db", "/home/user/.elko.db"],
       "env": {
         "SEC_USER_AGENT": "MyApp me@example.com"
       }
@@ -131,7 +139,7 @@ Cursor supports MCP via its settings. Add to `~/.cursor/mcp.json` (or the Cursor
   "mcpServers": {
     "elko-market": {
       "command": "/absolute/path/to/elko",
-      "args": ["mcp"],
+      "args": ["mcp", "--db", "/home/user/.elko.db"],
       "env": {
         "SEC_USER_AGENT": "MyApp me@example.com"
       }
@@ -285,7 +293,7 @@ You can restrict which data sources are available when starting the MCP server. 
   "mcpServers": {
     "elko-market-yahoo-only": {
       "command": "/path/to/elko",
-      "args": ["--sources", "yahoo", "mcp"],
+      "args": ["--sources", "yahoo", "--db", "/home/user/.elko.db", "mcp"],
       "env": { "SEC_USER_AGENT": "MyApp me@example.com" }
     }
   }
@@ -301,11 +309,11 @@ You can also run multiple named servers with different source sets:
   "mcpServers": {
     "elko-equity": {
       "command": "/path/to/elko",
-      "args": ["--sources", "yahoo,edgar", "mcp"]
+      "args": ["--sources", "yahoo,edgar", "--db", "/home/user/.elko.db", "mcp"]
     },
     "elko-macro": {
       "command": "/path/to/elko",
-      "args": ["--sources", "treasury,bls,worldbank", "mcp"]
+      "args": ["--sources", "treasury,bls,worldbank", "--db", "/home/user/.elko.db", "mcp"]
     }
   }
 }

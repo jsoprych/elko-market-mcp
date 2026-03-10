@@ -3,7 +3,7 @@
     "elko-market": {
       "type": "stdio",
       "command": "/home/john/CODE/PROJECTS/LATEST/2026/MARKETMCP/elko-market-mcp/elko",
-      "args": ["mcp"],
+      "args": ["mcp", "--db", "/home/john/.elko.db"],
       "env": {
         "SEC_USER_AGENT": "elko-market-mcp contact@localhost"
       }
