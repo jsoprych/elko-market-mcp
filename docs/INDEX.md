@@ -36,14 +36,19 @@ This is the master index for the elko-market-mcp technical documentation. All fo
    - [Response format](REST-API.md#response-format)
    - [Error handling](REST-API.md#error-handling)
 
-4. [MCP Setup Guide](MCP-SETUP.md)
+4. [API Keys & Credentials](API-KEYS.md)
+   - [Current channels](API-KEYS.md#current-channels)
+   - [Planned channels](API-KEYS.md#planned-channels--key-requirements)
+   - [Setting keys for CLI / MCP / Docker](API-KEYS.md#setting-keys)
+
+5. [MCP Setup Guide](MCP-SETUP.md)
    - [Claude Code](MCP-SETUP.md#claude-code)
    - [Claude Desktop](MCP-SETUP.md#claude-desktop)
    - [Cursor](MCP-SETUP.md#cursor)
    - [Any MCP client](MCP-SETUP.md#generic-mcp-client)
 
 ### Extending elko
-5. [Adding a New Channel](CHANNELS.md)
+6. [Adding a New Channel](CHANNELS.md)
    - [How channels work](CHANNELS.md#how-channels-work)
    - [The two files you need](CHANNELS.md#the-two-files-you-need)
    - [Worked example: CoinGecko](CHANNELS.md#worked-example-coingecko-market-chart)
@@ -52,7 +57,7 @@ This is the master index for the elko-market-mcp technical documentation. All fo
    - [Tips and patterns](CHANNELS.md#tips-and-patterns)
 
 ### Architecture & Internals
-6. [Architecture](ARCHITECTURE.md)
+7. [Architecture](ARCHITECTURE.md)
    - [Three-interface design](ARCHITECTURE.md#three-interface-design)
    - [Channel pipeline](ARCHITECTURE.md#channel-pipeline)
    - [Registry](ARCHITECTURE.md#registry)
@@ -61,21 +66,21 @@ This is the master index for the elko-market-mcp technical documentation. All fo
    - [Extractor pattern](ARCHITECTURE.md#extractor-pattern)
    - [Web frontend](ARCHITECTURE.md#web-frontend)
 
-7. [Phase 2 Design: SQLite-Native Pipeline](PIPELINE-DESIGN.md)
+8. [Phase 2 Design: SQLite-Native Pipeline](PIPELINE-DESIGN.md)
    - [Motivation](PIPELINE-DESIGN.md#1-the-core-insight)
    - [MapperFunc contract](PIPELINE-DESIGN.md#8-the-mapperfunc-contract)
    - [Cross-channel joins](PIPELINE-DESIGN.md#10-cross-channel-joins)
    - [Implementation roadmap](PIPELINE-DESIGN.md#13-implementation-roadmap)
 
 ### Deployment
-8. [Docker Deployment](DOCKER.md)
+9. [Docker Deployment](DOCKER.md)
    - [Quick start with docker-compose](DOCKER.md#quick-start)
    - [Build image manually](DOCKER.md#build-the-image)
    - [Configuration](DOCKER.md#configuration)
    - [Persistent cache](DOCKER.md#persistent-cache)
 
 ### Cookbook
-9. [How-To & Workflow Examples](HOW-TO.md)
+10. [How-To & Workflow Examples](HOW-TO.md)
    - [All 10 tools with CLI + REST examples](HOW-TO.md#tool-reference--example-calls)
    - [Earnings deep dive](HOW-TO.md#earnings-season-deep-dive)
    - [Macro context workflow](HOW-TO.md#macro-context-for-a-trade)
