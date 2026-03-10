@@ -115,8 +115,8 @@ func extractFDICBankSearch(ctx context.Context, args json.RawMessage, ch *channe
 }
 
 type fdicFinArgs struct {
-	Cert string `json:"cert"`
-	Year int    `json:"year"`
+	Cert json.Number `json:"cert"` // accepts "3009" or 3009 from CLI numeric coercion
+	Year int         `json:"year"`
 }
 
 func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *channel.Channel) (string, error) {
@@ -124,7 +124,8 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 	if err := json.Unmarshal(args, &a); err != nil {
 		return "", err
 	}
-	if a.Cert == "" {
+	cert := a.Cert.String()
+	if cert == "" || cert == "0" {
 		return "", fmt.Errorf("cert is required")
 	}
 
@@ -141,7 +142,7 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 	}
 
 	params := url.Values{}
-	params.Set("filters", fmt.Sprintf("%s:%s", fc("cert"), a.Cert))
+	params.Set("filters", fmt.Sprintf("%s:%s", fc("cert"), cert))
 	params.Set("fields", strings.Join(fields, ","))
 	params.Set("sort_by", fc("repdte"))
 	params.Set("sort_order", "DESC")
@@ -168,7 +169,7 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 	}
 
 	if len(resp.Data) == 0 {
-		return fmt.Sprintf("No FDIC financial data found for cert %s.", a.Cert), nil
+		return fmt.Sprintf("No FDIC financial data found for cert %s.", cert), nil
 	}
 
 	// Labels keyed by canonical lowercase name; fc() applied at lookup time.
@@ -192,7 +193,7 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "# FDIC Financials — Cert %s\n\n", a.Cert)
+	fmt.Fprintf(&sb, "# FDIC Financials — Cert %s\n\n", cert)
 	for _, row := range resp.Data {
 		d := row.Data
 		fmt.Fprintf(&sb, "\n## Period: %v\n", d[fc("repdte")])
