@@ -65,8 +65,8 @@ export function renderChart(text, resultFormat, spec, container) {
 // ── SVG builder ────────────────────────────────────────────────────────────────
 
 function buildSVG(labels, values, type, yLabel) {
-  const W  = 480;
-  const H  = 190;
+  const W  = 360;
+  const H  = 160;
   const cW = W - PAD.l - PAD.r;
   const cH = H - PAD.t - PAD.b;
 

@@ -185,7 +185,6 @@
   flex-direction: row;
   border-bottom: 1px solid var(--elko-border, #e1e4e8);
   background: var(--elko-bg-surface, #fff);
-  max-height: 55vh;
   overflow: hidden;
 }
 
@@ -200,7 +199,9 @@
 .elko-chart-panel {
   flex: 1;
   min-width: 0;
-  padding: 14px 16px 8px;
+  max-width: 380px;
+  max-height: 220px;
+  padding: 10px 14px 6px;
   overflow: hidden;
   display: flex;
   align-items: center;
