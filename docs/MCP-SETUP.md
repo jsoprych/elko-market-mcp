@@ -13,10 +13,11 @@ How to configure elko as an MCP (Model Context Protocol) server for various AI c
 3. [Claude Code](#claude-code)
 4. [Claude Desktop](#claude-desktop)
 5. [Cursor](#cursor)
-6. [Generic MCP Client](#generic-mcp-client)
-7. [Verifying the Connection](#verifying-the-connection)
-8. [Source Filtering via MCP](#source-filtering-via-mcp)
-9. [Troubleshooting](#troubleshooting)
+6. [Generic MCP Client (stdio)](#generic-mcp-client-stdio)
+7. [HTTP Transport (POST /mcp)](#http-transport-post-mcp)
+8. [Verifying the Connection](#verifying-the-connection)
+9. [Source Filtering via MCP](#source-filtering-via-mcp)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -31,7 +32,10 @@ AI:  "Based on current Treasury rates, the 2-year yield (4.89%) exceeds the
       10-year yield (4.23%), indicating an inverted curve..."
 ```
 
-elko implements MCP over **stdio** (standard in/out), which is the standard transport for local MCP servers.
+elko implements MCP over two transports:
+
+- **stdio** — standard for local clients (Claude Code, Claude Desktop, Cursor)
+- **HTTP** — `POST /mcp` on the `serve` command, for remote or containerised deployments
 
 ---
 
@@ -140,7 +144,7 @@ Or via the Cursor UI: **Settings → MCP → Add Server** and fill in the comman
 
 ---
 
-## Generic MCP Client
+## Generic MCP Client (stdio)
 
 For any MCP-compatible client, elko speaks standard JSON-RPC 2.0 over stdio.
 
@@ -169,6 +173,39 @@ SEC_USER_AGENT=MyApp me@example.com
 // Ping
 {"jsonrpc":"2.0","id":4,"method":"ping","params":{}}
 ```
+
+---
+
+## HTTP Transport (POST /mcp)
+
+When running `elko serve`, the same JSON-RPC 2.0 MCP protocol is available over HTTP at `POST /mcp`. This is useful for:
+
+- Remote or network-accessible deployments
+- Docker / containerised setups where stdio isn't practical
+- Testing and scripting with `curl`
+
+```bash
+./elko serve --port 8080
+```
+
+```bash
+# Initialize
+curl -s -XPOST localhost:8080/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+
+# List tools
+curl -s -XPOST localhost:8080/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+
+# Call a tool
+curl -s -XPOST localhost:8080/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"yahoo_quote","arguments":{"symbol":"AAPL"}}}'
+```
+
+Notifications (no `id` field) return `HTTP 204` with no body, per the MCP spec. Unknown methods with an `id` return a `-32601` JSON-RPC error.
 
 ---
 
@@ -274,5 +311,5 @@ elko needs outbound HTTPS to:
 - `data.sec.gov`, `efts.sec.gov` (SEC EDGAR)
 - `api.fiscaldata.treasury.gov` (Treasury)
 - `api.bls.gov` (BLS)
-- `banks.data.fdic.gov` (FDIC)
+- `api.fdic.gov` (FDIC)
 - `api.worldbank.org` (World Bank)

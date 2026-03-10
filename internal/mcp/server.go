@@ -123,15 +123,19 @@ func (s *Server) handle(ctx context.Context, req *rpcRequest) *rpcResponse {
 	switch req.Method {
 	case "initialize":
 		return s.handleInitialize(req)
-	case "notifications/initialized":
-		return nil // no response for notifications
 	case "tools/list":
 		return s.handleToolsList(req)
 	case "tools/call":
 		return s.handleToolsCall(ctx, req)
 	case "ping":
-		return okResp(req.ID, map[string]string{})
+		return okResp(req.ID, map[string]interface{}{})
 	default:
+		// Notifications have no id — never send an error response for them.
+		// This covers notifications/initialized, notifications/cancelled, and
+		// any future notifications the client may send.
+		if req.ID == nil {
+			return nil
+		}
 		return errResp(req.ID, -32601, fmt.Sprintf("method not found: %s", req.Method), nil)
 	}
 }

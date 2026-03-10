@@ -92,6 +92,14 @@ curl -s -XPOST localhost:8080/v1/call/yahoo_quote \
   -d '{"symbol":"AAPL"}'
 ```
 
+The `serve` command also exposes a full **MCP HTTP transport** at `POST /mcp` — useful for remote clients or containerised deployments that can't use stdio:
+
+```bash
+curl -s -XPOST localhost:8080/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"yahoo_quote","arguments":{"symbol":"NVDA"}}}'
+```
+
 ---
 
 ## Web Dashboard
