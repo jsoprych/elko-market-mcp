@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -97,7 +98,7 @@ func buildRegistry(sources string) (*registry.Registry, *sql.DB, *calllog.Logger
 }
 
 func parseSourceSet(s string) map[string]bool {
-	all := []string{"yahoo", "edgar", "treasury", "bls", "fdic", "worldbank"}
+	all := []string{"yahoo", "edgar", "treasury", "bls", "fdic", "worldbank", "fred"}
 	m := make(map[string]bool)
 	parts := strings.Split(strings.ToLower(s), ",")
 	for _, p := range parts {
@@ -218,7 +219,12 @@ func callCmd() *cobra.Command {
 				case "false":
 					m[k] = false
 				default:
-					m[k] = v
+					// Coerce numeric strings so int/float fields unmarshal correctly.
+					if n, err := strconv.ParseFloat(v, 64); err == nil {
+						m[k] = n
+					} else {
+						m[k] = v
+					}
 				}
 			}
 

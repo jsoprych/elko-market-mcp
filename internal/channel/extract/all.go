@@ -11,4 +11,5 @@ func RegisterAll(r *channel.Runner) {
 	RegisterBLS(r)
 	RegisterFDIC(r)
 	RegisterWorldBank(r)
+	RegisterFRED(r)
 }

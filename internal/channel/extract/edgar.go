@@ -3,12 +3,15 @@ package extract
 import (
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jsoprych/elko-market-mcp/internal/channel"
 )
@@ -26,6 +29,7 @@ func RegisterEDGAR(r *channel.Runner) {
 	ec := &edgarClient{cikM: make(map[string]string)}
 	r.RegisterExtractor("edgar_xbrl_financials", ec.extractFinancials)
 	r.RegisterExtractor("edgar_company_info", ec.extractCompanyInfo)
+	r.RegisterExtractor("edgar_insider_trades", ec.extractInsiderTrades)
 }
 
 // ── CIK lookup ────────────────────────────────────────────────────────────────
@@ -346,5 +350,322 @@ func (ec *edgarClient) extractCompanyInfo(ctx context.Context, args json.RawMess
 	if s.Category != "" {
 		fmt.Fprintf(&sb, "%-28s %s\n", "Filer Category:", s.Category)
 	}
+	return sb.String(), nil
+}
+
+// ── Form 4 insider trades ──────────────────────────────────────────────────────
+
+// padCIK zero-pads a CIK to 10 digits as required by data.sec.gov/submissions.
+func padCIK(cik string) string {
+	for len(cik) < 10 {
+		cik = "0" + cik
+	}
+	return cik
+}
+
+// form4Doc models the subset of Form 4 XML we care about.
+type form4Doc struct {
+	Issuer struct {
+		Name   string `xml:"issuerName"`
+		Symbol string `xml:"issuerTradingSymbol"`
+	} `xml:"issuer"`
+	Owner struct {
+		ID struct {
+			Name string `xml:"rptOwnerName"`
+		} `xml:"reportingOwnerId"`
+		Rel struct {
+			IsDirector string `xml:"isDirector"`
+			IsOfficer  string `xml:"isOfficer"`
+			Is10Pct    string `xml:"isTenPercentOwner"`
+			Title      string `xml:"officerTitle"`
+		} `xml:"reportingOwnerRelationship"`
+	} `xml:"reportingOwner"`
+	NonDerivatives struct {
+		Txns []struct {
+			Date    string `xml:"transactionDate>value"`
+			Code    string `xml:"transactionCoding>transactionCode"`
+			Shares  string `xml:"transactionAmounts>transactionShares>value"`
+			Price   string `xml:"transactionAmounts>transactionPricePerShare>value"`
+			AcqDisp string `xml:"transactionAmounts>transactionAcquiredDisposedCode>value"`
+			After   string `xml:"postTransactionAmounts>sharesOwnedFollowingTransaction>value"`
+		} `xml:"nonDerivativeTransaction"`
+	} `xml:"nonDerivativeTable"`
+}
+
+type insiderTrade struct {
+	Date    string
+	Name    string
+	Role    string
+	Code    string
+	Label   string
+	Shares  float64
+	Price   float64
+	Value   float64
+	After   float64
+}
+
+var txnCodeLabel = map[string]string{
+	"P": "Buy",
+	"S": "Sell",
+	"A": "Award",
+	"M": "Opt.Exercise",
+	"F": "Tax Withhold",
+	"G": "Gift",
+	"D": "Return",
+	"J": "Other",
+}
+
+type insiderArgs struct {
+	Symbol string `json:"symbol"`
+	Months int    `json:"months"`
+	Types  string `json:"types"`
+	Limit  int    `json:"limit"`
+}
+
+func (ec *edgarClient) extractInsiderTrades(ctx context.Context, args json.RawMessage, ch *channel.Channel) (string, error) {
+	var a insiderArgs
+	if err := json.Unmarshal(args, &a); err != nil {
+		return "", err
+	}
+	if a.Symbol == "" {
+		return "", fmt.Errorf("symbol is required")
+	}
+	a.Symbol = strings.ToUpper(a.Symbol)
+	if a.Months <= 0 {
+		a.Months = 12
+	}
+	if a.Months > 36 {
+		a.Months = 36
+	}
+	if a.Limit <= 0 {
+		a.Limit = 30
+	}
+	if a.Limit > 100 {
+		a.Limit = 100
+	}
+	tradesOnly := a.Types != "all"
+
+	cik, err := ec.lookupCIK(ctx, a.Symbol, ch)
+	if err != nil {
+		return "", err
+	}
+
+	// Fetch company name from submissions (one call, also confirms CIK is valid).
+	submURL := fmt.Sprintf("https://data.sec.gov/submissions/CIK%s.json", padCIK(cik))
+	submBody, err := ch.Fetch(ctx, submURL)
+	if err != nil {
+		return "", fmt.Errorf("fetch submissions: %w", err)
+	}
+	var subm struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(submBody, &subm); err != nil {
+		return "", fmt.Errorf("parse submissions: %w", err)
+	}
+
+	// Use EDGAR EFTS full-text search to find Form 4 filings where this
+	// company's CIK appears as the issuer. Form 4s are filed under the
+	// insider's own CIK, not the company's, so the submissions endpoint
+	// doesn't list them. EFTS finds all docs containing the padded CIK.
+	cutoff := time.Now().AddDate(0, -a.Months, 0).Format("2006-01-02")
+	eftsURL := fmt.Sprintf(
+		"https://efts.sec.gov/LATEST/search-index?q=%%22%s%%22&forms=4&dateRange=custom&startdt=%s&size=50",
+		padCIK(cik), cutoff,
+	)
+	eftsBody, err := ch.Fetch(ctx, eftsURL)
+	if err != nil {
+		return "", fmt.Errorf("EDGAR search: %w", err)
+	}
+
+	var efts struct {
+		Hits struct {
+			Hits []struct {
+				ID     string `json:"_id"` // "adsh:filename.xml"
+				Source struct {
+					FileDate string `json:"file_date"`
+				} `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+	if err := json.Unmarshal(eftsBody, &efts); err != nil {
+		return "", fmt.Errorf("parse EDGAR search: %w", err)
+	}
+
+	// Build filing list: split _id into accession + document filename.
+	type filing struct {
+		accession string // with dashes: "0000320193-24-000126"
+		doc       string // filename: "wk-form4_xxx.xml"
+		date      string
+	}
+	var filings []filing
+	for _, h := range efts.Hits.Hits {
+		parts := strings.SplitN(h.ID, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		filings = append(filings, filing{
+			accession: parts[0],
+			doc:       parts[1],
+			date:      h.Source.FileDate,
+		})
+	}
+
+	if len(filings) == 0 {
+		return fmt.Sprintf("No Form 4 filings found for %s in the last %d months.", a.Symbol, a.Months), nil
+	}
+
+	// Fetch and parse each Form 4 XML.
+	var trades []insiderTrade
+	for _, f := range filings {
+		accNoDash := strings.ReplaceAll(f.accession, "-", "")
+		// Archive path uses the filer's CIK (first 10 digits of accession number,
+		// stripped of leading zeros) — not necessarily the issuer's CIK.
+		filerCIK := strings.TrimLeft(strings.Split(f.accession, "-")[0], "0")
+		if filerCIK == "" {
+			filerCIK = "0"
+		}
+		xmlURL := fmt.Sprintf(
+			"https://www.sec.gov/Archives/edgar/data/%s/%s/%s",
+			filerCIK, accNoDash, f.doc,
+		)
+		xmlBody, err := ch.Fetch(ctx, xmlURL)
+		if err != nil {
+			continue // skip unparseable filings
+		}
+		var doc form4Doc
+		if err := xml.Unmarshal(xmlBody, &doc); err != nil {
+			continue
+		}
+
+		// Determine insider role label.
+		rel := doc.Owner.Rel
+		role := rel.Title
+		if role == "" {
+			switch {
+			case rel.IsDirector == "1":
+				role = "Director"
+			case rel.Is10Pct == "1":
+				role = ">10% Owner"
+			default:
+				role = "Insider"
+			}
+		}
+		name := doc.Owner.ID.Name
+
+		for _, txn := range doc.NonDerivatives.Txns {
+			code := strings.ToUpper(strings.TrimSpace(txn.Code))
+			if tradesOnly && code != "P" && code != "S" {
+				continue
+			}
+			label, ok := txnCodeLabel[code]
+			if !ok {
+				label = code
+			}
+			// Skip transactions older than the cutoff window.
+			if txn.Date != "" && txn.Date < cutoff {
+				continue
+			}
+			shares, _ := strconv.ParseFloat(txn.Shares, 64)
+			price, _ := strconv.ParseFloat(txn.Price, 64)
+			after, _ := strconv.ParseFloat(txn.After, 64)
+			if shares == 0 {
+				continue
+			}
+			trades = append(trades, insiderTrade{
+				Date:   txn.Date,
+				Name:   name,
+				Role:   role,
+				Code:   code,
+				Label:  label,
+				Shares: shares,
+				Price:  price,
+				Value:  shares * price,
+				After:  after,
+			})
+		}
+	}
+
+	if len(trades) == 0 {
+		typeDesc := "open-market trades"
+		if !tradesOnly {
+			typeDesc = "transactions"
+		}
+		return fmt.Sprintf("No insider %s found for %s in the last %d months.", typeDesc, a.Symbol, a.Months), nil
+	}
+
+	// Sort newest first, cap at limit.
+	sort.Slice(trades, func(i, j int) bool { return trades[i].Date > trades[j].Date })
+	if len(trades) > a.Limit {
+		trades = trades[:a.Limit]
+	}
+
+	// Build summary counts.
+	var buyShares, sellShares float64
+	buyCount, sellCount := 0, 0
+	for _, t := range trades {
+		if t.Code == "P" {
+			buyShares += t.Shares
+			buyCount++
+		} else if t.Code == "S" {
+			sellShares += t.Shares
+			sellCount++
+		}
+	}
+
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "# %s (%s) — Insider Transactions (%d months)\n\n",
+		subm.Name, a.Symbol, a.Months)
+
+	fmt.Fprintf(&sb, "%-12s  %-28s  %-18s  %-13s  %-10s  %-10s  %-14s  %s\n",
+		"Date", "Insider", "Role", "Type",
+		"Shares", "Price", "Value", "Owned After")
+	sb.WriteString(strings.Repeat("-", 120) + "\n")
+
+	for _, t := range trades {
+		role := t.Role
+		if len(role) > 18 {
+			role = role[:15] + "..."
+		}
+		name := t.Name
+		if len(name) > 28 {
+			name = name[:25] + "..."
+		}
+		priceStr := "—"
+		if t.Price > 0 {
+			priceStr = fmt.Sprintf("$%.2f", t.Price)
+		}
+		valueStr := "—"
+		if t.Value > 0 {
+			valueStr = formatLarge(t.Value)
+		}
+		afterStr := "—"
+		if t.After > 0 {
+			afterStr = formatLarge(t.After)
+		}
+		fmt.Fprintf(&sb, "%-12s  %-28s  %-18s  %-13s  %10s  %10s  %14s  %s\n",
+			t.Date, name, role, t.Label,
+			formatLarge(t.Shares), priceStr, valueStr, afterStr)
+	}
+
+	sb.WriteByte('\n')
+	if buyCount > 0 || sellCount > 0 {
+		fmt.Fprintf(&sb, "Summary (%d months): ", a.Months)
+		if buyCount > 0 {
+			fmt.Fprintf(&sb, "%d buy(s) +%s shares", buyCount, formatLarge(buyShares))
+		}
+		if buyCount > 0 && sellCount > 0 {
+			sb.WriteString("  |  ")
+		}
+		if sellCount > 0 {
+			fmt.Fprintf(&sb, "%d sell(s) -%s shares", sellCount, formatLarge(sellShares))
+		}
+		net := buyShares - sellShares
+		sign := "+"
+		if net < 0 {
+			sign = ""
+		}
+		fmt.Fprintf(&sb, "  |  Net: %s%s shares\n", sign, formatLarge(net))
+	}
+	sb.WriteString("Source: SEC EDGAR Form 4 (data.sec.gov)\n")
 	return sb.String(), nil
 }

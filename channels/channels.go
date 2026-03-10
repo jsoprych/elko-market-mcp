@@ -3,5 +3,5 @@ package channels
 
 import "embed"
 
-//go:embed yahoo/*.json edgar/*.json treasury/*.json bls/*.json fdic/*.json worldbank/*.json
+//go:embed yahoo/*.json edgar/*.json treasury/*.json bls/*.json fdic/*.json worldbank/*.json fred/*.json
 var FS embed.FS

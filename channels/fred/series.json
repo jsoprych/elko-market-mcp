@@ -1,0 +1,29 @@
+{
+  "name": "fred_series",
+  "description": "Federal Reserve Economic Data (FRED) time series observations. Covers 800k+ series: interest rates, money supply, employment, housing, trade, and more. Set FRED_API_KEY env var for higher rate limits (free at fred.stlouisfed.org). Well-known IDs: FEDFUNDS (Fed Funds Rate), DGS10 (10Y Treasury), DGS2 (2Y Treasury), UNRATE (Unemployment), CPIAUCSL (CPI SA), GDP (Nominal GDP), M2SL (M2 Money Supply), HOUST (Housing Starts), T10Y2Y (10Y-2Y Yield Spread).",
+  "source": "fred",
+  "category": "macro",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "series_id":   {"type": "string",  "description": "FRED series ID (use fred_search to find IDs)", "placeholder": "FEDFUNDS",
+                      "examples": ["FEDFUNDS","DGS10","DGS2","UNRATE","CPIAUCSL","GDP","M2SL","HOUST","T10Y2Y","INDPRO"]},
+      "start_date":  {"type": "string",  "format": "date", "description": "Start date YYYY-MM-DD (default: 5 years ago)", "placeholder": "2020-01-01"},
+      "end_date":    {"type": "string",  "format": "date", "description": "End date YYYY-MM-DD (default: today)",          "placeholder": "2025-01-01"},
+      "limit":       {"type": "integer", "description": "Max observations returned (default 120, max 1000)", "default": 120, "minimum": 1, "maximum": 1000}
+    },
+    "required": ["series_id"]
+  },
+  "result_format": "table",
+  "chart": {"type": "line", "x": "Date", "y": "Value"},
+  "request": {
+    "base_url": "https://api.stlouisfed.org/fred",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "ttl": "6h"
+  },
+  "response": {
+    "extractor": "fred_series"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "fred_search",
+  "description": "Search FRED for series by keyword. Returns series ID, title, units, frequency, and last updated date. Use this to discover series IDs for fred_series. Examples: 'unemployment rate', 'CPI', 'federal funds', 'GDP growth', 'mortgage rate', 'housing starts', 'money supply'.",
+  "source": "fred",
+  "category": "macro",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "query": {"type": "string", "description": "Search keywords", "placeholder": "unemployment rate"},
+      "limit": {"type": "integer", "description": "Max results (default 10, max 50)", "default": 10, "minimum": 1, "maximum": 50}
+    },
+    "required": ["query"]
+  },
+  "result_format": "table",
+  "request": {
+    "base_url": "https://api.stlouisfed.org/fred",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "ttl": "24h"
+  },
+  "response": {
+    "extractor": "fred_search"
+  }
+}
