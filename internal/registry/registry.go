@@ -9,7 +9,14 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 )
+
+// CallLogger is satisfied by *calllog.Logger. Defined here to avoid an import
+// cycle; callers inject the concrete type via SetLogger.
+type CallLogger interface {
+	Log(tool, source string, args json.RawMessage, result string, err error, duration time.Duration)
+}
 
 // Tool is a single callable data-fetching operation.
 type Tool struct {
@@ -29,9 +36,17 @@ type Handler func(ctx context.Context, args json.RawMessage) (string, error)
 
 // Registry holds all registered tools.
 type Registry struct {
-	mu    sync.RWMutex
-	tools map[string]Tool
-	order []string
+	mu     sync.RWMutex
+	tools  map[string]Tool
+	order  []string
+	logger CallLogger // optional; nil = logging disabled
+}
+
+// SetLogger attaches a call logger. Safe to call after registration.
+func (r *Registry) SetLogger(l CallLogger) {
+	r.mu.Lock()
+	r.logger = l
+	r.mu.Unlock()
 }
 
 func New() *Registry {
@@ -89,13 +104,19 @@ func (r *Registry) Sources() []string {
 	return out
 }
 
-// Dispatch executes a named tool.
+// Dispatch executes a named tool and logs the call when a logger is set.
 func (r *Registry) Dispatch(ctx context.Context, name string, args json.RawMessage) (string, error) {
 	r.mu.RLock()
 	t, ok := r.tools[name]
+	logger := r.logger
 	r.mu.RUnlock()
 	if !ok {
 		return "", fmt.Errorf("unknown tool: %q", name)
 	}
-	return t.Handler(ctx, args)
+	start := time.Now()
+	result, err := t.Handler(ctx, args)
+	if logger != nil {
+		logger.Log(name, t.Source, args, result, err, time.Since(start))
+	}
+	return result, err
 }

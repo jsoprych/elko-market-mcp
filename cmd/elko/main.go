@@ -18,6 +18,7 @@ import (
 	"github.com/jsoprych/elko-market-mcp/channels"
 	"github.com/jsoprych/elko-market-mcp/internal/api"
 	"github.com/jsoprych/elko-market-mcp/internal/cache"
+	"github.com/jsoprych/elko-market-mcp/internal/calllog"
 	"github.com/jsoprych/elko-market-mcp/internal/channel"
 	"github.com/jsoprych/elko-market-mcp/internal/channel/extract"
 	"github.com/jsoprych/elko-market-mcp/internal/mcp"
@@ -28,9 +29,10 @@ const version = "0.1.0"
 
 // Global flags
 var (
-	flagDB      string
-	flagSources string
-	flagPort    int
+	flagDB           string
+	flagSources      string
+	flagPort         int
+	flagLogMaxOutput int
 )
 
 func main() {
@@ -40,9 +42,10 @@ func main() {
 		Version: version,
 	}
 
-	root.PersistentFlags().StringVar(&flagDB, "db", "", "SQLite database path (enables L2 cache + persistence)")
+	root.PersistentFlags().StringVar(&flagDB, "db", "", "SQLite database path (enables L2 cache + call logging)")
 	root.PersistentFlags().StringVar(&flagSources, "sources", "all", "Comma-separated sources to enable: yahoo,edgar,treasury,bls,fdic,worldbank,all")
 	root.PersistentFlags().IntVar(&flagPort, "port", 8080, "HTTP port for serve mode")
+	root.PersistentFlags().IntVar(&flagLogMaxOutput, "log-max-output", calllog.DefaultMaxOutput, "Max result characters stored per log entry (0 = unlimited)")
 
 	root.AddCommand(mcpCmd(), serveCmd(), catalogueCmd(), callCmd())
 
@@ -54,13 +57,13 @@ func main() {
 
 // ── Wiring ────────────────────────────────────────────────────────────────────
 
-func buildRegistry(sources string) (*registry.Registry, *sql.DB, error) {
+func buildRegistry(sources string) (*registry.Registry, *sql.DB, *calllog.Logger, error) {
 	var db *sql.DB
 	if flagDB != "" {
 		var err error
 		db, err = cache.OpenSQLite(flagDB)
 		if err != nil {
-			return nil, nil, fmt.Errorf("open db: %w", err)
+			return nil, nil, nil, fmt.Errorf("open db: %w", err)
 		}
 	}
 
@@ -72,7 +75,7 @@ func buildRegistry(sources string) (*registry.Registry, *sql.DB, error) {
 
 	allSpecs, err := channel.LoadFS(channels.FS)
 	if err != nil {
-		return nil, nil, fmt.Errorf("load channel specs: %w", err)
+		return nil, nil, nil, fmt.Errorf("load channel specs: %w", err)
 	}
 
 	enabled := parseSourceSet(sources)
@@ -84,10 +87,13 @@ func buildRegistry(sources string) (*registry.Registry, *sql.DB, error) {
 	}
 
 	if err := runner.Register(reg, filtered); err != nil {
-		return nil, nil, fmt.Errorf("register channels: %w", err)
+		return nil, nil, nil, fmt.Errorf("register channels: %w", err)
 	}
 
-	return reg, db, nil
+	logger := calllog.New(db, flagLogMaxOutput)
+	reg.SetLogger(logger)
+
+	return reg, db, logger, nil
 }
 
 func parseSourceSet(s string) map[string]bool {
@@ -114,7 +120,7 @@ func mcpCmd() *cobra.Command {
 		Use:   "mcp",
 		Short: "Start MCP stdio server (for Claude Desktop, Cursor, etc.)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reg, _, err := buildRegistry(flagSources)
+			reg, _, _, err := buildRegistry(flagSources)
 			if err != nil {
 				return err
 			}
@@ -130,7 +136,7 @@ func serveCmd() *cobra.Command {
 		Use:   "serve",
 		Short: "Start REST API server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reg, _, err := buildRegistry(flagSources)
+			reg, _, logger, err := buildRegistry(flagSources)
 			if err != nil {
 				return err
 			}
@@ -140,6 +146,7 @@ func serveCmd() *cobra.Command {
 				Handler: api.New(reg, version).
 					WithWebRoot("./web").
 					WithMCPHandler(mcpSrv.HTTPHandler()).
+					WithLogger(logger).
 					Handler(),
 			}
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -163,7 +170,7 @@ func catalogueCmd() *cobra.Command {
 		Use:   "catalogue",
 		Short: "Print available tools and their descriptions",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reg, _, err := buildRegistry(flagSources)
+			reg, _, _, err := buildRegistry(flagSources)
 			if err != nil {
 				return err
 			}
@@ -189,7 +196,7 @@ func callCmd() *cobra.Command {
 		Short: "Invoke a tool directly (one-shot)",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reg, _, err := buildRegistry(flagSources)
+			reg, _, _, err := buildRegistry(flagSources)
 			if err != nil {
 				return err
 			}

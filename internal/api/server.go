@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jsoprych/elko-market-mcp/internal/calllog"
 	"github.com/jsoprych/elko-market-mcp/internal/registry"
 )
 
@@ -17,8 +19,9 @@ import (
 type Server struct {
 	reg        *registry.Registry
 	version    string
-	webRoot    string       // optional; serves static UI if non-empty
-	mcpHandler http.Handler // optional; mounted at POST /mcp when set
+	webRoot    string          // optional; serves static UI if non-empty
+	mcpHandler http.Handler   // optional; mounted at POST /mcp when set
+	logger     *calllog.Logger // optional; nil = /v1/logs returns 404
 }
 
 func New(reg *registry.Registry, version string) *Server {
@@ -37,6 +40,12 @@ func (s *Server) WithMCPHandler(h http.Handler) *Server {
 	return s
 }
 
+// WithLogger enables GET /v1/logs using the provided call logger.
+func (s *Server) WithLogger(l *calllog.Logger) *Server {
+	s.logger = l
+	return s
+}
+
 // Handler returns the configured Chi router.
 func (s *Server) Handler() http.Handler {
 	r := chi.NewRouter()
@@ -52,6 +61,9 @@ func (s *Server) Handler() http.Handler {
 
 	if s.mcpHandler != nil {
 		r.Post("/mcp", s.mcpHandler.ServeHTTP)
+	}
+	if s.logger != nil {
+		r.Get("/v1/logs", s.handleLogs)
 	}
 
 	if s.webRoot != "" {
@@ -173,6 +185,26 @@ func (s *Server) handleCall(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"tool":   toolName,
 		"result": result,
+	})
+}
+
+func (s *Server) handleLogs(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	limit, _ := strconv.Atoi(q.Get("limit"))
+	tool := q.Get("tool")
+	errorsOnly := q.Get("error") == "true"
+
+	entries, err := s.logger.Query(limit, tool, errorsOnly)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if entries == nil {
+		entries = []calllog.Entry{} // always return an array, never null
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"entries": entries,
+		"count":   len(entries),
 	})
 }
 

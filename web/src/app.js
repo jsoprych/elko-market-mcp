@@ -1,19 +1,25 @@
 /**
  * app.js — entry point.
  *
- * Features:
- *   - Layout skeleton: sidebar | (form + chart) | result
- *   - Sidebar ↔ form-builder ↔ runner pipeline
- *   - Pure-SVG chart panel rendered from channel's chart spec
- *   - Export toolbar: format selector (txt/csv/json) + download + copy
- *   - URL state: ?tool=name&arg=val — bookmarkable, auto-runs on load
- *   - Result history: in-app back/forward, up to HISTORY_LIMIT entries
- *   - Light / dark theme toggle (persisted to localStorage)
+ * Layout:
+ *   sidebar | workspace
+ *
+ * Workspace has optional top-level tabs [Tools | Logs] — Logs tab appears
+ * only when GET /v1/logs responds 200 (i.e. --db is active).
+ *
+ * Tools pane:
+ *   upper: toolPanel [Form | MCP JSON] tabs
+ *   resultWrapper: toolbar + [Result | Chart] tabs
+ *
+ * Logs pane:
+ *   buildLogViewer() — live-refreshing call log table
  */
 
 import { fetchCatalogue }             from './catalogue.js';
 import { buildSidebar }               from './sidebar.js';
-import { buildForm }                  from './form-builder.js';
+import { buildForm, collectArgs }     from './form-builder.js';
+import { buildTabs }                  from './tabs.js';
+import { buildLogViewer }             from './logs.js';
 import { runTool }                    from './runner.js';
 import { renderResult }               from './renderer.js';
 import { renderChart }                from './chart.js';
@@ -22,7 +28,7 @@ import { exportData, exportFilename } from './export.js';
 const HISTORY_LIMIT = 50;
 const THEME_KEY     = 'elko-theme';
 
-// ── Theme helpers (run before render to avoid flash) ──────────────────────────
+// ── Theme helpers ─────────────────────────────────────────────────────────────
 
 function getStoredTheme() {
   const v = localStorage.getItem(THEME_KEY);
@@ -34,25 +40,15 @@ function applyTheme(theme) {
   localStorage.setItem(THEME_KEY, theme);
 }
 
-// Apply before first paint: stored preference → system preference → light
 applyTheme(getStoredTheme() ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
 async function init() {
   const app = document.getElementById('app');
 
-  // ── Layout skeleton ─────────────────────────────────────────────────────────
+  // ── Sidebar ──────────────────────────────────────────────────────────────────
   const sidebar       = mk('aside', 'elko-sidebar');
-  const workspace     = mk('main',  'elko-workspace');
-  const upper         = mk('div',   'elko-upper');       // form + chart side-by-side
-  const toolPanel     = mk('div',   'elko-tool-panel');
-  const chartPanel    = mk('div',   'elko-chart-panel');
-  const resultWrapper = mk('div',   'elko-result-wrapper');
-  const toolbar       = mk('div',   'elko-result-toolbar');
-  const resultPanel   = mk('div',   'elko-result-panel');
-
-  const sidebarHeader = mk('div', 'elko-sidebar-header');
-
-  const sidebarTitle = mk('span', 'elko-sidebar-title');
+  const sidebarHeader = mk('div',   'elko-sidebar-header');
+  const sidebarTitle  = mk('span',  'elko-sidebar-title');
   sidebarTitle.textContent = 'elko market';
 
   const themeBtn = mk('button', 'elko-theme-toggle');
@@ -65,7 +61,6 @@ async function init() {
     themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
   }
   syncThemeBtn();
-
   themeBtn.addEventListener('click', () => {
     applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
     syncThemeBtn();
@@ -75,28 +70,71 @@ async function init() {
   sidebarHeader.appendChild(themeBtn);
   sidebar.appendChild(sidebarHeader);
 
-  upper.appendChild(toolPanel);
-  upper.appendChild(chartPanel);
-  resultWrapper.appendChild(toolbar);
-  resultWrapper.appendChild(resultPanel);
-  workspace.appendChild(upper);
-  workspace.appendChild(resultWrapper);
-  app.appendChild(sidebar);
-  app.appendChild(workspace);
+  // ── Tools pane ───────────────────────────────────────────────────────────────
+  const toolsPane     = mk('main', 'elko-workspace');
+  const upper         = mk('div',  'elko-upper');
+  const toolPanel     = mk('div',  'elko-tool-panel');
+  const resultWrapper = mk('div',  'elko-result-wrapper');
+  const toolbar       = mk('div',  'elko-result-toolbar');
+  const resultPanel   = mk('div',  'elko-result-panel');
+  const chartPanel    = mk('div',  'elko-chart-panel');
 
   const welcome = mk('div', 'elko-welcome');
   welcome.textContent = 'Select a tool from the sidebar.';
   toolPanel.appendChild(welcome);
 
-  // ── Export format state ──────────────────────────────────────────────────────
-  // Persists across navigations; controls both Download and Copy.
+  upper.appendChild(toolPanel);
+  toolsPane.appendChild(upper);
+  toolsPane.appendChild(resultWrapper);
+
+  // ── Export format state ───────────────────────────────────────────────────────
   let exportFmt = 'txt';
 
-  // ── History state ────────────────────────────────────────────────────────────
-  // Each entry: { tool, args, format, text, chart }
+  // ── History state ─────────────────────────────────────────────────────────────
   const hist = { entries: [], cursor: -1 };
 
-  // ── Load catalogue ───────────────────────────────────────────────────────────
+  // ── Check logging availability (data-driven: Logs tab only if /v1/logs 200s) ──
+  let logsAvailable = false;
+  try {
+    const probe = await fetch('/v1/logs?limit=1');
+    logsAvailable = probe.ok;
+  } catch { /* no logs */ }
+
+  // ── Build log viewer (may not be shown) ───────────────────────────────────────
+  let logViewer = null;
+  if (logsAvailable) {
+    logViewer = buildLogViewer();
+  }
+
+  // ── Top-level workspace: tabs if logs available, plain workspace otherwise ────
+  let workspaceRoot;
+  if (logsAvailable) {
+    const logPane = mk('div', 'elko-log-pane');
+    logPane.appendChild(logViewer.el);
+
+    const { el: topTabsEl, setActive: setTopTab } = buildTabs([
+      { id: 'tools', label: 'Tools', content: toolsPane },
+      { id: 'logs',  label: 'Logs',  content: logPane   },
+    ]);
+
+    // Start/stop log auto-refresh based on active tab
+    topTabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.elko-tab-btn');
+      if (!btn) return;
+      if (btn.dataset.tab === 'logs')  logViewer.start();
+      if (btn.dataset.tab === 'tools') logViewer.stop();
+    });
+
+    workspaceRoot = topTabsEl;
+    workspaceRoot.classList.add('elko-workspace-tabs');
+  } else {
+    workspaceRoot = toolsPane;
+  }
+
+  app.appendChild(sidebar);
+  app.appendChild(workspaceRoot);
+
+  // ── Load catalogue ────────────────────────────────────────────────────────────
   let groups;
   try {
     groups = await fetchCatalogue();
@@ -107,19 +145,17 @@ async function init() {
     return;
   }
 
-  // Flat name → tool lookup (used for URL restore)
   const toolMap = new Map();
   for (const cats of groups.values())
     for (const tools of cats.values())
       for (const tool of tools)
         toolMap.set(tool.name, tool);
 
-  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  // ── Toolbar ────────────────────────────────────────────────────────────────────
 
   function renderToolbar(rawText, resultFormat, toolName) {
     toolbar.innerHTML = '';
 
-    // Back / forward
     const nav  = mk('div', 'elko-toolbar-nav');
     const back = mk('button', 'elko-toolbar-btn');
     back.textContent = '←';
@@ -129,8 +165,7 @@ async function init() {
       if (hist.cursor > 0) {
         hist.cursor--;
         const e = hist.entries[hist.cursor];
-        renderResult(e.text, e.format, resultPanel);
-        renderChart(e.text, e.format, e.chart, chartPanel);
+        showResult(e.text, e.format, e.chart);
         replaceURL(e.tool, e.args);
         renderToolbar(e.text, e.format, e.tool.name);
       }
@@ -144,8 +179,7 @@ async function init() {
       if (hist.cursor < hist.entries.length - 1) {
         hist.cursor++;
         const e = hist.entries[hist.cursor];
-        renderResult(e.text, e.format, resultPanel);
-        renderChart(e.text, e.format, e.chart, chartPanel);
+        showResult(e.text, e.format, e.chart);
         replaceURL(e.tool, e.args);
         renderToolbar(e.text, e.format, e.tool.name);
       }
@@ -161,36 +195,26 @@ async function init() {
     nav.appendChild(counter);
     toolbar.appendChild(nav);
 
-    // Export controls (only when there's a result)
     if (rawText) {
       const actions = mk('div', 'elko-toolbar-actions');
-
-      // Format selector
-      const fmt = mk('select', 'elko-toolbar-fmt');
+      const fmt     = mk('select', 'elko-toolbar-fmt');
       fmt.title = 'Export format';
       for (const f of ['txt', 'csv', 'json']) {
         const opt = document.createElement('option');
-        opt.value = f;
-        opt.textContent = f;
-        opt.selected = f === exportFmt;
+        opt.value = f; opt.textContent = f; opt.selected = f === exportFmt;
         fmt.appendChild(opt);
       }
       fmt.addEventListener('change', () => { exportFmt = fmt.value; });
 
-      // Download button
       const dl = mk('button', 'elko-toolbar-btn');
-      dl.textContent = '↓';
-      dl.title       = 'Download';
+      dl.textContent = '↓'; dl.title = 'Download';
       dl.addEventListener('click', () => {
-        const content  = exportData(rawText, resultFormat, exportFmt);
-        const filename = exportFilename(toolName || 'result', exportFmt);
-        triggerDownload(content, filename);
+        triggerDownload(exportData(rawText, resultFormat, exportFmt),
+          exportFilename(toolName || 'result', exportFmt));
       });
 
-      // Copy button
       const copy = mk('button', 'elko-toolbar-btn elko-toolbar-btn--copy');
-      copy.textContent = 'Copy';
-      copy.title       = 'Copy to clipboard';
+      copy.textContent = 'Copy'; copy.title = 'Copy to clipboard';
       copy.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(exportData(rawText, resultFormat, exportFmt));
@@ -209,7 +233,35 @@ async function init() {
     }
   }
 
-  // ── URL helpers ──────────────────────────────────────────────────────────────
+  // ── Result + Chart tabs ───────────────────────────────────────────────────────
+  // Rebuilt each time a tool is selected (chart tab only when tool.chart exists).
+
+  let resultTabsCtrl = null; // { setActive }
+
+  function buildResultArea(tool) {
+    resultWrapper.innerHTML = '';
+    resultPanel.innerHTML   = '';
+    chartPanel.innerHTML    = '';
+
+    resultWrapper.appendChild(toolbar);
+
+    const tabDefs = [{ id: 'result', label: 'Result', content: resultPanel }];
+    if (tool?.chart) {
+      tabDefs.push({ id: 'chart', label: 'Chart', content: chartPanel });
+    }
+
+    const { el: resultTabsEl, setActive } = buildTabs(tabDefs);
+    resultTabsCtrl = { setActive };
+    resultWrapper.appendChild(resultTabsEl);
+  }
+
+  function showResult(text, format, chart) {
+    renderResult(text, format, resultPanel);
+    renderChart(text, format, chart || null, chartPanel);
+    if (chart && resultTabsCtrl) resultTabsCtrl.setActive('result');
+  }
+
+  // ── URL helpers ───────────────────────────────────────────────────────────────
 
   function replaceURL(tool, args) {
     const p = new URLSearchParams({ tool: tool.name });
@@ -227,49 +279,71 @@ async function init() {
     for (const [k, v] of p) {
       if (k === 'tool') continue;
       const prop = tool.schema?.properties?.[k];
-      if (prop?.type === 'boolean')                              args[k] = v === 'true';
-      else if (prop?.type === 'integer' || prop?.type === 'number') args[k] = Number(v);
-      else                                                       args[k] = v;
+      if (prop?.type === 'boolean')                                  args[k] = v === 'true';
+      else if (prop?.type === 'integer' || prop?.type === 'number')  args[k] = Number(v);
+      else                                                           args[k] = v;
     }
     return { tool, args };
   }
 
-  // ── Tool selector ─────────────────────────────────────────────────────────────
+  // ── Tool selector ──────────────────────────────────────────────────────────────
 
   function selectTool(tool, prefillArgs = {}) {
-    // Highlight sidebar item
     sidebar.querySelectorAll('.elko-tool-item.active')
       .forEach(el => el.classList.remove('active'));
     const item = sidebar.querySelector(`[data-tool="${CSS.escape(tool.name)}"]`);
     if (item) item.classList.add('active');
 
-    // Clear panels
-    toolPanel.innerHTML   = '';
-    resultPanel.innerHTML = '';
-    chartPanel.innerHTML  = '';
+    toolPanel.innerHTML = '';
     renderToolbar(null, '', tool.name);
+    buildResultArea(tool);
 
-    // Show chart panel only when tool has a chart spec
-    chartPanel.style.display = tool.chart ? '' : 'none';
-
-    const formContainer = buildForm(tool, async (args) => {
+    // ── Form content ───────────────────────────────────────────────────────────
+    const formContent = buildForm(tool, async (args) => {
       replaceURL(tool, args);
       const result = await runTool(tool.name, args, tool.result_format || '', resultPanel);
       if (result) {
         renderChart(result.text, tool.result_format || '', tool.chart || null, chartPanel);
         pushHistory({ tool, args, format: tool.result_format || '', text: result.text, chart: tool.chart || null });
         renderToolbar(result.text, tool.result_format || '', tool.name);
+        if (resultTabsCtrl) resultTabsCtrl.setActive('result');
       }
     });
 
-    if (Object.keys(prefillArgs).length > 0) {
-      fillForm(formContainer, prefillArgs, tool);
+    if (Object.keys(prefillArgs).length > 0) fillForm(formContent, prefillArgs, tool);
+
+    // ── MCP JSON content ───────────────────────────────────────────────────────
+    const mcpContent = mk('div', 'elko-mcp-json-panel');
+    const mcpPre     = mk('pre', 'elko-result-output elko-mcp-json-pre');
+    const mcpHint    = mk('p',   'elko-mcp-json-hint');
+    mcpHint.textContent = 'Live JSON-RPC 2.0 payload — updates as you fill the form.';
+    mcpContent.appendChild(mcpHint);
+    mcpContent.appendChild(mcpPre);
+
+    function updateMcpJson() {
+      const form = formContent.querySelector('form');
+      const args = form ? collectArgs(form, tool.schema?.properties || {}) : {};
+      mcpPre.textContent = JSON.stringify({
+        jsonrpc: '2.0',
+        id:      1,
+        method:  'tools/call',
+        params:  { name: tool.name, arguments: args },
+      }, null, 2);
     }
 
-    toolPanel.appendChild(formContainer);
+    updateMcpJson();
+    formContent.addEventListener('input',  updateMcpJson);
+    formContent.addEventListener('change', updateMcpJson);
+
+    // ── Assemble toolPanel with Form | MCP JSON tabs ───────────────────────────
+    const { el: toolTabsEl } = buildTabs([
+      { id: 'form', label: 'Form',     content: formContent },
+      { id: 'mcp',  label: 'MCP JSON', content: mcpContent  },
+    ]);
+    toolPanel.appendChild(toolTabsEl);
   }
 
-  // ── History helpers ───────────────────────────────────────────────────────────
+  // ── History helpers ────────────────────────────────────────────────────────────
 
   function pushHistory(entry) {
     hist.entries = hist.entries.slice(0, hist.cursor + 1);
@@ -277,8 +351,6 @@ async function init() {
     if (hist.entries.length > HISTORY_LIMIT) hist.entries.shift();
     hist.cursor = hist.entries.length - 1;
   }
-
-  // ── Form pre-fill ─────────────────────────────────────────────────────────────
 
   function fillForm(container, args, tool) {
     const form = container.querySelector('form');
@@ -292,20 +364,19 @@ async function init() {
     }
   }
 
-  // ── Wire sidebar ──────────────────────────────────────────────────────────────
+  // ── Wire sidebar ───────────────────────────────────────────────────────────────
 
   buildSidebar(sidebar, groups, tool => {
     replaceURL(tool, {});
     selectTool(tool);
   });
 
-  // ── Restore from URL on load ──────────────────────────────────────────────────
+  // ── Restore from URL ───────────────────────────────────────────────────────────
 
   const urlState = readURL();
   if (urlState) {
     const { tool, args } = urlState;
     selectTool(tool, args);
-
     const required = tool.schema?.required ?? [];
     const haveAll  = required.every(k => args[k] !== undefined && args[k] !== '');
     if (haveAll && (required.length > 0 || Object.keys(args).length > 0)) {
@@ -319,7 +390,7 @@ async function init() {
   }
 }
 
-// ── Utilities ───────────────────────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────────────────────
 
 function triggerDownload(content, filename) {
   const a = document.createElement('a');

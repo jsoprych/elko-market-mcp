@@ -51,6 +51,21 @@ const schema = `
 PRAGMA journal_mode=WAL;
 PRAGMA foreign_keys=ON;
 
+-- Tool call log (enabled when --db is set).
+CREATE TABLE IF NOT EXISTS call_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts          INTEGER NOT NULL,
+    tool        TEXT    NOT NULL DEFAULT '',
+    source      TEXT    NOT NULL DEFAULT '',
+    args        TEXT    NOT NULL DEFAULT '{}',
+    result      TEXT    NOT NULL DEFAULT '',
+    result_len  INTEGER NOT NULL DEFAULT 0,
+    error       TEXT    NOT NULL DEFAULT '',
+    duration_ms INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_call_log_ts   ON call_log (ts DESC);
+CREATE INDEX IF NOT EXISTS idx_call_log_tool ON call_log (tool);
+
 -- Generic HTTP response cache (all sources).
 CREATE TABLE IF NOT EXISTS cache (
     key        TEXT    PRIMARY KEY,

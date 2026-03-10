@@ -195,11 +195,12 @@ function buildInput(name, prop, isRequired) {
 
 /**
  * Walk form elements by prop name, returning only non-empty, typed values.
+ * Exported so callers (e.g. MCP JSON preview) can read live form state.
  * @param {HTMLFormElement} form
  * @param {Record<string, object>} props
  * @returns {object}
  */
-function collectArgs(form, props) {
+export function collectArgs(form, props) {
   const args = {};
   for (const [name, prop] of Object.entries(props)) {
     const el = form.elements[name];

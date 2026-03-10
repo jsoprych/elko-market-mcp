@@ -461,6 +461,200 @@
 .elko-chart-area     { fill:   var(--elko-chart-area, rgba(124,106,247,0.07)); }
 .elko-chart-bar      { fill:   var(--elko-chart-bar,  #7c6af7); }
 
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+
+.elko-tabs        { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+
+.elko-tab-bar {
+  display: flex;
+  flex-shrink: 0;
+  background: var(--elko-bg-muted, #f0f1f5);
+  border-bottom: 1px solid var(--elko-border, #e1e4e8);
+  gap: 0;
+  padding: 0 8px;
+}
+.elko-tab-bar--hidden { display: none; }
+
+/* Top-level workspace tabs get a slightly bolder bar */
+.elko-workspace-tabs > .elko-tabs > .elko-tab-bar {
+  background: var(--elko-bg-sidebar, #1e1e2e);
+  border-bottom: 2px solid var(--elko-accent, #7c6af7);
+  padding: 0 16px;
+}
+
+.elko-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--elko-text-muted, #555);
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color 0.1s;
+}
+.elko-tab-btn:hover        { color: var(--elko-text, #1a1a2e); }
+.elko-tab-btn--active      { color: var(--elko-accent, #7c6af7); border-bottom-color: var(--elko-accent, #7c6af7); }
+
+/* Top-level tab buttons on dark bar */
+.elko-workspace-tabs > .elko-tabs > .elko-tab-bar .elko-tab-btn {
+  color: var(--elko-text-sidebar-dim, #a6adc8);
+  font-size: 13px;
+  padding: 9px 16px;
+}
+.elko-workspace-tabs > .elko-tabs > .elko-tab-bar .elko-tab-btn:hover {
+  color: var(--elko-text-sidebar, #cdd6f4);
+}
+.elko-workspace-tabs > .elko-tabs > .elko-tab-bar .elko-tab-btn--active {
+  color: var(--elko-text-accent, #cba6f7);
+  border-bottom-color: var(--elko-accent, #7c6af7);
+}
+
+.elko-tab-body  { flex: 1; min-height: 0; overflow: hidden; display: flex; }
+
+.elko-tab-pane              { display: none; flex: 1; min-height: 0; overflow: hidden; }
+.elko-tab-pane--active      { display: flex; flex-direction: column; }
+
+/* Top-level tab body fills viewport height */
+.elko-workspace-tabs > .elko-tabs > .elko-tab-body > .elko-tab-pane--active {
+  overflow: auto;
+}
+
+/* ── Workspace tabs container ─────────────────────────────────────────────── */
+
+.elko-workspace-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Log pane ──────────────────────────────────────────────────────────────── */
+
+.elko-log-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Log viewer ────────────────────────────────────────────────────────────── */
+
+.elko-logs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--elko-bg-raised, #fafbfc);
+}
+
+.elko-logs-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--elko-bg-muted, #f0f1f5);
+  border-bottom: 1px solid var(--elko-border, #e1e4e8);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.elko-logs-filter {
+  padding: 4px 8px;
+  font-size: 12px;
+  width: auto;
+  max-width: 180px;
+}
+
+.elko-logs-filter-label {
+  font-size: 12px;
+  color: var(--elko-text-muted, #555);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.elko-logs-status {
+  font-size: 11px;
+  color: var(--elko-text-subtle, #999);
+  margin-left: auto;
+}
+.elko-logs-status--error { color: var(--elko-error-text, #c0392b); }
+
+.elko-logs-content {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+.elko-logs-table { table-layout: auto; }
+.elko-logs-table td { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+
+.elko-log-row--error td { color: var(--elko-error-text, #c0392b); }
+.elko-log-ts      { color: var(--elko-text-subtle, #999); white-space: nowrap; }
+.elko-log-tool    { color: var(--elko-accent, #7c6af7); font-weight: 600; }
+.elko-log-ms      { text-align: right; color: var(--elko-text-muted, #666); }
+.elko-log-args    { font-family: 'Menlo', 'Consolas', monospace; font-size: 11px; }
+.elko-log-result  { font-family: 'Menlo', 'Consolas', monospace; font-size: 11px; }
+.elko-log-error   { color: var(--elko-error-text, #c0392b); font-size: 11px; }
+
+/* ── Log detail panel ─────────────────────────────────────────────────────── */
+
+.elko-log-detail {
+  margin: 12px 16px;
+  padding: 14px 18px;
+  background: var(--elko-bg-surface, #fff);
+  border: 1px solid var(--elko-border, #e1e4e8);
+  border-radius: 6px;
+}
+.elko-log-detail-close { margin-bottom: 12px; }
+.elko-log-detail-block { margin-bottom: 12px; }
+.elko-log-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--elko-text-subtle, #999);
+  margin-bottom: 3px;
+}
+.elko-log-detail-value {
+  font-family: 'Menlo', 'Consolas', 'SF Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--elko-text, #1a1a2e);
+  background: var(--elko-bg-raised, #fafbfc);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--elko-border, #e8eaf0);
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* ── MCP JSON tab panel ───────────────────────────────────────────────────── */
+
+.elko-mcp-json-panel {
+  padding: 12px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.elko-mcp-json-hint {
+  font-size: 11px;
+  color: var(--elko-text-subtle, #999);
+  margin-bottom: 8px;
+}
+.elko-mcp-json-pre {
+  background: var(--elko-bg-raised, #fafbfc);
+  border: 1px solid var(--elko-border, #e8eaf0);
+  border-radius: 5px;
+  padding: 12px 14px;
+  max-width: 520px;
+}
+
 /* ── Dark theme token overrides ───────────────────────────────────────────── */
 /* Activate: document.body.dataset.theme = 'dark'                             */
 /* Or use:   @media (prefers-color-scheme: dark) { ... }                      */
