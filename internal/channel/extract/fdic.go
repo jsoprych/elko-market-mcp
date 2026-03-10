@@ -16,6 +16,16 @@ func RegisterFDIC(r *channel.Runner) {
 	r.RegisterExtractor("fdic_bank_financials", extractFDICBankFinancials)
 }
 
+// fieldCase returns name in the case required by the channel's "field_case" option.
+// JSON defines the case; this function enforces it uniformly for request params
+// and response field lookups.
+func fieldCase(ch *channel.Channel, name string) string {
+	if ch.Spec.Options["field_case"] == "upper" {
+		return strings.ToUpper(name)
+	}
+	return strings.ToLower(name)
+}
+
 type fdicSearchArgs struct {
 	Name  string `json:"name"`
 	State string `json:"state"`
@@ -31,17 +41,26 @@ func extractFDICBankSearch(ctx context.Context, args json.RawMessage, ch *channe
 		a.Limit = 10
 	}
 
+	fc := func(name string) string { return fieldCase(ch, name) }
+
+	fields := strings.Join([]string{
+		fc("cert"), fc("name"), fc("city"), fc("stname"), fc("active"), fc("asset"), fc("repdte"),
+	}, ",")
+
 	params := url.Values{}
-	params.Set("fields", "cert,name,city,stname,active,asset,repdte")
+	params.Set("fields", fields)
 	params.Set("limit", fmt.Sprint(a.Limit))
-	params.Set("sort_by", "asset")
-	params.Set("sort_order", "DESC")
+	params.Set("sort_by", fc("name"))
+	params.Set("sort_order", "ASC")
+
 	if a.Name != "" {
-		params.Set("filters", fmt.Sprintf("name:%s*", url.QueryEscape(a.Name)))
+		// Replace spaces with wildcards for multi-word Lucene field queries.
+		nameFilter := strings.ReplaceAll(strings.TrimSpace(a.Name), " ", "*")
+		params.Set("filters", fmt.Sprintf("%s:%s*", fc("name"), nameFilter))
 	}
 	if a.State != "" {
 		filter := params.Get("filters")
-		stFilter := fmt.Sprintf("stname:%s", strings.ToUpper(a.State))
+		stFilter := fmt.Sprintf("%s:%s", fc("stname"), strings.ToUpper(a.State))
 		if filter != "" {
 			params.Set("filters", filter+" AND "+stFilter)
 		} else {
@@ -49,7 +68,7 @@ func extractFDICBankSearch(ctx context.Context, args json.RawMessage, ch *channe
 		}
 	}
 
-	apiURL := "https://banks.data.fdic.gov/api/institutions?" + params.Encode()
+	apiURL := ch.Spec.Request.BaseURL + "/institutions?" + params.Encode()
 	body, err := ch.Fetch(ctx, apiURL)
 	if err != nil {
 		return "", err
@@ -57,15 +76,7 @@ func extractFDICBankSearch(ctx context.Context, args json.RawMessage, ch *channe
 
 	var resp struct {
 		Data []struct {
-			Data struct {
-				Cert   interface{} `json:"cert"`
-				Name   string      `json:"name"`
-				City   string      `json:"city"`
-				State  string      `json:"stname"`
-				Active interface{} `json:"active"`
-				Asset  interface{} `json:"asset"`
-				RepDte string      `json:"repdte"`
-			} `json:"data"`
+			Data map[string]interface{} `json:"data"`
 		} `json:"data"`
 		Meta struct {
 			Total int `json:"total"`
@@ -85,17 +96,21 @@ func extractFDICBankSearch(ctx context.Context, args json.RawMessage, ch *channe
 	sb.WriteString(strings.Repeat("-", 90) + "\n")
 	for _, row := range resp.Data {
 		d := row.Data
-		location := fmt.Sprintf("%s, %s", d.City, d.State)
-		active := fmt.Sprint(d.Active)
+		cert := fmt.Sprint(d[fc("cert")])
+		name := fmt.Sprint(d[fc("name")])
+		city := fmt.Sprint(d[fc("city")])
+		state := fmt.Sprint(d[fc("stname")])
+		asset := fmt.Sprint(d[fc("asset")])
+		active := fmt.Sprint(d[fc("active")])
 		if active == "1" {
 			active = "Yes"
 		} else {
 			active = "No"
 		}
-		fmt.Fprintf(&sb, "%-10v  %-40s  %-20s  %-6s  %v\n",
-			d.Cert, d.Name, location, active, d.Asset)
+		location := fmt.Sprintf("%s, %s", city, state)
+		fmt.Fprintf(&sb, "%-10s  %-40s  %-20s  %-6s  %s\n", cert, name, location, active, asset)
 	}
-	sb.WriteString("\nSource: banks.data.fdic.gov\n")
+	fmt.Fprintf(&sb, "\nSource: %s\n", ch.Spec.Request.BaseURL)
 	return sb.String(), nil
 }
 
@@ -113,25 +128,31 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 		return "", fmt.Errorf("cert is required")
 	}
 
-	fields := strings.Join([]string{
+	fc := func(name string) string { return fieldCase(ch, name) }
+
+	fieldList := []string{
 		"cert", "repdte", "asset", "dep", "lnlsnet", "eq", "netinc",
 		"roa", "roe", "intinc", "nonii", "nonix", "lnlsdepr",
 		"tier1capital", "rbct1tier1", "rbcrwaj",
-	}, ",")
+	}
+	fields := make([]string, len(fieldList))
+	for i, f := range fieldList {
+		fields[i] = fc(f)
+	}
 
 	params := url.Values{}
-	params.Set("filters", fmt.Sprintf("cert:%s", a.Cert))
-	params.Set("fields", fields)
-	params.Set("sort_by", "repdte")
+	params.Set("filters", fmt.Sprintf("%s:%s", fc("cert"), a.Cert))
+	params.Set("fields", strings.Join(fields, ","))
+	params.Set("sort_by", fc("repdte"))
 	params.Set("sort_order", "DESC")
 	params.Set("limit", "8")
 
 	if a.Year > 0 {
 		filter := params.Get("filters")
-		params.Set("filters", filter+fmt.Sprintf(" AND repdte:[%d0101 TO %d1231]", a.Year, a.Year))
+		params.Set("filters", filter+fmt.Sprintf(" AND %s:[%d0101 TO %d1231]", fc("repdte"), a.Year, a.Year))
 	}
 
-	apiURL := "https://banks.data.fdic.gov/api/financials?" + params.Encode()
+	apiURL := ch.Spec.Request.BaseURL + "/financials?" + params.Encode()
 	body, err := ch.Fetch(ctx, apiURL)
 	if err != nil {
 		return "", err
@@ -150,9 +171,7 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 		return fmt.Sprintf("No FDIC financial data found for cert %s.", a.Cert), nil
 	}
 
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "# FDIC Financials — Cert %s\n\n", a.Cert)
-
+	// Labels keyed by canonical lowercase name; fc() applied at lookup time.
 	labels := map[string]string{
 		"repdte":      "Report Date",
 		"asset":       "Total Assets ($M)",
@@ -167,20 +186,22 @@ func extractFDICBankFinancials(ctx context.Context, args json.RawMessage, ch *ch
 		"nonix":       "Non-Interest Expense ($M)",
 		"tier1capital": "Tier 1 Capital ($M)",
 	}
-	order := []string{"repdte", "asset", "dep", "lnlsnet", "eq", "netinc",
-		"roa", "roe", "intinc", "nonii", "nonix", "tier1capital"}
+	order := []string{
+		"repdte", "asset", "dep", "lnlsnet", "eq", "netinc",
+		"roa", "roe", "intinc", "nonii", "nonix", "tier1capital",
+	}
 
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "# FDIC Financials — Cert %s\n\n", a.Cert)
 	for _, row := range resp.Data {
 		d := row.Data
-		repdte := fmt.Sprint(d["repdte"])
-		fmt.Fprintf(&sb, "\n## Period: %s\n", repdte)
+		fmt.Fprintf(&sb, "\n## Period: %v\n", d[fc("repdte")])
 		for _, k := range order {
-			if v, ok := d[k]; ok {
-				label := labels[k]
-				fmt.Fprintf(&sb, "  %-28s %v\n", label+":", v)
+			if v, ok := d[fc(k)]; ok {
+				fmt.Fprintf(&sb, "  %-28s %v\n", labels[k]+":", v)
 			}
 		}
 	}
-	sb.WriteString("\nSource: banks.data.fdic.gov (values in $M unless noted)\n")
+	fmt.Fprintf(&sb, "\nSource: %s (values in $M unless noted)\n", ch.Spec.Request.BaseURL)
 	return sb.String(), nil
 }

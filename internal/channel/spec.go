@@ -12,15 +12,16 @@ import (
 
 // Spec describes a single tool channel — name, schema, HTTP config, extractor reference.
 type Spec struct {
-	Name         string          `json:"name"`
-	Description  string          `json:"description"`
-	Source       string          `json:"source"`
-	Category     string          `json:"category"`
-	Schema       json.RawMessage `json:"schema"`
-	ResultFormat string          `json:"result_format"` // ui hint: "table" | "csv" | "kv" | "sections"
-	Chart        json.RawMessage `json:"chart,omitempty"` // optional chart spec: {type,x,y}
-	Request      RequestSpec     `json:"request"`
-	Response     ResponseSpec    `json:"response"`
+	Name         string            `json:"name"`
+	Description  string            `json:"description"`
+	Source       string            `json:"source"`
+	Category     string            `json:"category"`
+	Schema       json.RawMessage   `json:"schema"`
+	ResultFormat string            `json:"result_format"` // ui hint: "table" | "csv" | "kv" | "sections"
+	Chart        json.RawMessage   `json:"chart,omitempty"` // optional chart spec: {type,x,y}
+	Options      map[string]string `json:"options,omitempty"` // extractor hints, e.g. {"field_case":"upper"}
+	Request      RequestSpec       `json:"request"`
+	Response     ResponseSpec      `json:"response"`
 }
 
 // RequestSpec holds HTTP connection config for a channel.

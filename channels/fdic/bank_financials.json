@@ -12,8 +12,11 @@
     "required": ["cert"]
   },
   "result_format": "sections",
+  "options": {
+    "field_case": "upper"
+  },
   "request": {
-    "base_url": "https://banks.data.fdic.gov",
+    "base_url": "https://api.fdic.gov/banks",
     "headers": {
       "Accept": "application/json"
     },
