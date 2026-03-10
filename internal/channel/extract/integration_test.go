@@ -138,3 +138,78 @@ func TestIntegration_WorldBankIndicator(t *testing.T) {
 		"to_year":   2023,
 	})
 }
+
+// ── FRED ──────────────────────────────────────────────────────────────────────
+
+func TestIntegration_FREDSeries(t *testing.T) {
+	if fredAPIKey() == "" {
+		t.Skip("FRED_API_KEY not set — skipping FRED integration test")
+	}
+	reg := buildLiveRegistry(t)
+	// Federal Funds Rate — among the most stable, always-available FRED series.
+	result := dispatch(t, reg, "fred_series", map[string]any{
+		"series_id":  "FEDFUNDS",
+		"start_date": "2024-01-01",
+		"end_date":   "2024-12-31",
+	})
+	if !contains(result, "Federal Funds") {
+		t.Errorf("expected series title in result, got: %.200s", result)
+	}
+}
+
+func TestIntegration_FREDSearch(t *testing.T) {
+	if fredAPIKey() == "" {
+		t.Skip("FRED_API_KEY not set — skipping FRED integration test")
+	}
+	reg := buildLiveRegistry(t)
+	result := dispatch(t, reg, "fred_search", map[string]any{
+		"query": "unemployment rate",
+		"limit": 5,
+	})
+	// UNRATE is the canonical unemployment series — must appear in top results.
+	if !contains(result, "UNRATE") {
+		t.Errorf("expected UNRATE in search results, got: %.200s", result)
+	}
+}
+
+// ── SEC EDGAR Form 4 (insider trades) ────────────────────────────────────────
+
+func TestIntegration_EDGARInsiderTrades(t *testing.T) {
+	reg := buildLiveRegistry(t)
+	// NVDA — active executive team with regular RSU vesting/awards.
+	// Use types=all so the test isn't sensitive to whether open-market
+	// trades happened in the window; awards/exercises are more predictable.
+	result := dispatch(t, reg, "edgar_insider_trades", map[string]any{
+		"symbol": "NVDA",
+		"months": 18,
+		"types":  "all",
+	})
+	if !contains(result, "NVIDIA") {
+		t.Errorf("expected company name in result, got: %.200s", result)
+	}
+}
+
+func TestIntegration_EDGARInsiderTrades_TradesOnly(t *testing.T) {
+	reg := buildLiveRegistry(t)
+	// Use a longer window to increase the chance of finding an open-market trade.
+	// If none are found, the tool returns a clear "No insider..." message (not an error).
+	dispatch(t, reg, "edgar_insider_trades", map[string]any{
+		"symbol": "NVDA",
+		"months": 24,
+		"types":  "trade",
+	})
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+func contains(s, substr string) bool {
+	return len(s) > 0 && len(substr) > 0 &&
+		func() bool {
+			for i := 0; i <= len(s)-len(substr); i++ {
+				if s[i:i+len(substr)] == substr {
+					return true
+				}
+			}
+			return false
+		}()
+}
