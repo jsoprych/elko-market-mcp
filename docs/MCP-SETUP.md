@@ -23,7 +23,7 @@ How to configure elko as an MCP (Model Context Protocol) server for various AI c
 
 ## What is MCP?
 
-Model Context Protocol (MCP) is an open standard that allows AI assistants to call external tools. When elko runs as an MCP server, your AI assistant can call any of the 10 financial data tools automatically based on natural language prompts — no manual URL construction or API calls needed.
+Model Context Protocol (MCP) is an open standard that allows AI assistants to call external tools. When elko runs as an MCP server, your AI assistant can call any of the elko financial data tools automatically based on natural language prompts — no manual URL construction or API calls needed.
 
 ```
 You: "Is the yield curve inverted right now?"
@@ -182,10 +182,49 @@ When running `elko serve`, the same JSON-RPC 2.0 MCP protocol is available over 
 
 - Remote or network-accessible deployments
 - Docker / containerised setups where stdio isn't practical
+- Sharing one running server across multiple AI clients simultaneously
 - Testing and scripting with `curl`
 
 ```bash
 ./elko serve --port 8080
+```
+
+### Auto-generated .mcp.json
+
+The running server generates a ready-to-use `.mcp.json` at `GET /mcp.json`. It reflects the exact host and port the request arrived on, so it works locally or remotely without editing:
+
+```bash
+# Download config pointing to the running server
+curl -s localhost:8080/mcp.json > .mcp.json
+
+# Verify
+cat .mcp.json
+```
+
+Output:
+```json
+{
+  "mcpServers": {
+    "elko-market": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
+This switches Claude Code from spawning a new `elko mcp` process to connecting to the already-running server — useful when you want the dashboard and MCP active at the same time, or when running in Docker.
+
+**Remote server** (replace hostname as needed):
+```bash
+curl -s myserver.local:8080/mcp.json > .mcp.json
+# → url: "http://myserver.local:8080/mcp"
+```
+
+**Docker:**
+```bash
+docker run -d --name elko -p 8080:8080 ghcr.io/jsoprych/elko-market-mcp:latest
+curl -s localhost:8080/mcp.json > .mcp.json
 ```
 
 ```bash
@@ -213,7 +252,7 @@ Notifications (no `id` field) return `HTTP 204` with no body, per the MCP spec. 
 
 ### In Claude Code
 
-Ask Claude: `"What financial data tools do you have available?"` — it should list the 10 elko tools.
+Ask Claude: `"What financial data tools do you have available?"` — it should list the elko tools.
 
 Or run a direct test: `"Get the current AAPL quote."` — Claude will call `yahoo_quote` and return live data.
 
@@ -233,7 +272,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 ./elko catalogue
 ```
 
-Should list all 10 tools with descriptions and schema summaries.
+Should list all tools with descriptions and schema summaries.
 
 ---
 

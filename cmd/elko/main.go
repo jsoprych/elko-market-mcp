@@ -153,7 +153,10 @@ func serveCmd() *cobra.Command {
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
 
-			fmt.Fprintf(os.Stderr, "elko-market-mcp v%s listening on :%d\n", version, flagPort)
+			fmt.Fprintf(os.Stderr, "elko-market-mcp v%s\n", version)
+			fmt.Fprintf(os.Stderr, "  Dashboard:  http://localhost:%d\n", flagPort)
+			fmt.Fprintf(os.Stderr, "  MCP (HTTP): http://localhost:%d/mcp\n", flagPort)
+			fmt.Fprintf(os.Stderr, "  MCP config: curl -s localhost:%d/mcp.json > .mcp.json\n", flagPort)
 			go func() {
 				<-ctx.Done()
 				srv.Shutdown(context.Background())

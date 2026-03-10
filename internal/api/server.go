@@ -60,6 +60,7 @@ func (s *Server) Handler() http.Handler {
 	r.Post("/v1/call/{tool}", s.handleCall)
 	r.Get("/v1/sources", s.handleSources)
 	r.Get("/v1/keys", s.handleKeys)
+	r.Get("/mcp.json", s.handleMCPConfig)
 
 	if s.mcpHandler != nil {
 		r.Post("/mcp", s.mcpHandler.ServeHTTP)
@@ -269,6 +270,27 @@ func (s *Server) handleKeys(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"keys":             entries,
 		"missing_required": missingRequired,
+	})
+}
+
+// handleMCPConfig returns a ready-to-use .mcp.json that points to this
+// running server's HTTP MCP endpoint. The URL is derived from the request's
+// Host header so it works on any port or remote host.
+//
+//	curl -s localhost:8080/mcp.json > .mcp.json
+func (s *Server) handleMCPConfig(w http.ResponseWriter, r *http.Request) {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	host := r.Host
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"mcpServers": map[string]interface{}{
+			"elko-market": map[string]interface{}{
+				"type": "http",
+				"url":  fmt.Sprintf("%s://%s/mcp", scheme, host),
+			},
+		},
 	})
 }
 
