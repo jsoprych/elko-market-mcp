@@ -15,9 +15,10 @@ import (
 
 // Server is the REST API server.
 type Server struct {
-	reg     *registry.Registry
-	version string
-	webRoot string // optional; serves static UI if non-empty
+	reg        *registry.Registry
+	version    string
+	webRoot    string       // optional; serves static UI if non-empty
+	mcpHandler http.Handler // optional; mounted at POST /mcp when set
 }
 
 func New(reg *registry.Registry, version string) *Server {
@@ -27,6 +28,12 @@ func New(reg *registry.Registry, version string) *Server {
 // WithWebRoot configures the server to serve a static UI from the given directory.
 func (s *Server) WithWebRoot(root string) *Server {
 	s.webRoot = root
+	return s
+}
+
+// WithMCPHandler mounts an MCP JSON-RPC 2.0 handler at POST /mcp.
+func (s *Server) WithMCPHandler(h http.Handler) *Server {
+	s.mcpHandler = h
 	return s
 }
 
@@ -42,6 +49,10 @@ func (s *Server) Handler() http.Handler {
 	r.Get("/v1/catalogue", s.handleCatalogue)
 	r.Post("/v1/call/{tool}", s.handleCall)
 	r.Get("/v1/sources", s.handleSources)
+
+	if s.mcpHandler != nil {
+		r.Post("/mcp", s.mcpHandler.ServeHTTP)
+	}
 
 	if s.webRoot != "" {
 		fs := http.FileServer(http.Dir(s.webRoot))

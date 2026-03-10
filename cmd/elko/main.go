@@ -134,9 +134,13 @@ func serveCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			mcpSrv := mcp.New(reg, version)
 			srv := &http.Server{
-				Addr:    fmt.Sprintf(":%d", flagPort),
-				Handler: api.New(reg, version).WithWebRoot("./web").Handler(),
+				Addr: fmt.Sprintf(":%d", flagPort),
+				Handler: api.New(reg, version).
+					WithWebRoot("./web").
+					WithMCPHandler(mcpSrv.HTTPHandler()).
+					Handler(),
 			}
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()

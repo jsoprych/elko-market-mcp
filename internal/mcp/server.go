@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 
@@ -27,6 +28,32 @@ func New(reg *registry.Registry, version string) *Server {
 // Serve runs the MCP loop until EOF or context cancellation.
 func (s *Server) Serve(ctx context.Context) error {
 	return s.ServeIO(ctx, os.Stdin, os.Stdout)
+}
+
+// HTTPHandler returns an http.Handler that accepts MCP JSON-RPC 2.0 requests
+// over HTTP POST (Streamable HTTP transport). Mount at POST /mcp.
+func (s *Server) HTTPHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var req rpcRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK) // JSON-RPC errors always return 200
+			json.NewEncoder(w).Encode(errResp(nil, -32700, "parse error", nil))
+			return
+		}
+		resp := s.handle(r.Context(), &req)
+		w.Header().Set("Content-Type", "application/json")
+		if resp == nil {
+			// Notification — no response body.
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		json.NewEncoder(w).Encode(resp)
+	})
 }
 
 func (s *Server) ServeIO(ctx context.Context, r io.Reader, w io.Writer) error {
